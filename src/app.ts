@@ -30,7 +30,7 @@ app.get('/health', (_request: Request, response: Response) => {
 })
 
 app.get('/hello/kylen-nguyen', (_request: Request, response: Response) => {
-    response.json({ message: 'Hello, Kylen Nguyen!'});
+  response.json({ message: 'Hello, Kylen Nguyen!' });
 });
 
 // 404 handler — must be after all routes
