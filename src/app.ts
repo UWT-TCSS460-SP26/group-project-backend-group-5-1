@@ -18,9 +18,15 @@ app.get('/openapi.json', (_request: Request, response: Response) => {
 });
 app.use('/api-docs', apiReference({ spec: { url: '/openapi.json' } }));
 
+// TODO: Remove Hello Route
+
 // Routes
 app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
+});
+
+app.get('/hello/kylen-nguyen', (_request: Request, response: Response) => {
+    response.json({ message: 'Hello, Kylen Nguyen!'});
 });
 
 // 404 handler — must be after all routes
