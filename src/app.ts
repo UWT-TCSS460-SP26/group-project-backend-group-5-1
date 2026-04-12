@@ -26,7 +26,7 @@ app.get('/hello', (_request: Request, response: Response) => {
 app.get('/hello/:name', (req: Request, res: Response) => {
   const name = req.params.name
     .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
   res.json({ greeting: `Hello, ${name}!` });
