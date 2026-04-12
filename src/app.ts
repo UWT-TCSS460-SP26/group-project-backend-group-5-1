@@ -28,7 +28,7 @@ app.get('/hello', (_request: Request, response: Response) => {
 app.get('/hello/kylen-nguyen', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, Kylen Nguyen!' });
 });
-  
+
 app.get('/hello/evin-roen', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, Evin Roen!' });
 });
