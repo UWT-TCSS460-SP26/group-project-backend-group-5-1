@@ -23,9 +23,15 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
-app.get('/hello/carson-poirier', (_request: Request, response: Response) => {
-  response.json({ greeting: 'Hello from Carson Poirier' });
+app.get('/hello/:name', (req: Request, res: Response) => {
+  const name = req.params.name
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  res.json({ greeting: `Hello, ${name}!` });
 });
+
 
 // 404 handler — must be after all routes(formatted)
 app.use((_request: Request, response: Response) => {
