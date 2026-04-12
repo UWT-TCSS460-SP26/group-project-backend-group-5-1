@@ -23,6 +23,10 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
+app.get('/hello/evin-roen', (_request: Request, response: Response) => {
+  response.json({ message: 'Hello, Evin Roen!' });
+});
+
 app.get('/hello/geovani', (_request: Request, response: Response) => {
   response.json({ message: 'Hello from geovani!' });
 });
