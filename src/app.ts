@@ -27,7 +27,7 @@ app.get('/health', (_request: Request, response: Response) => {
   });
 })
 
-// 404 handler — must be after all routes
+// 404 handler — must be after all routes(formatted)
 app.use((_request: Request, response: Response) => {
   response.status(404).json({ error: 'Route not found' });
 });
