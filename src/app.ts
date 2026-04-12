@@ -25,6 +25,20 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
+app.get('/hello/:name', (req: Request, res: Response) => {
+  const nameParam = req.params.name;
+
+  // Ensure name is a string (handle edge case where it could be an array)
+  const nameString = Array.isArray(nameParam) ? nameParam[0] : nameParam;
+
+  const name = nameString
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  res.json({ greeting: `Hello, ${name}!` });
+}); 
+  
 app.get('/hello/kylen-nguyen', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, Kylen Nguyen!' });
 });
