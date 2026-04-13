@@ -16,7 +16,17 @@ const spec = YAML.parse(specFile);
 app.get('/openapi.json', (_request: Request, response: Response) => {
   response.json(spec);
 });
+
 app.use('/api-docs', apiReference({ spec: { url: '/openapi.json' } }));
+
+// Routes
+app.get('/health', (_request: Request, response: Response) => {
+  response.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
