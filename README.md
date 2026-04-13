@@ -24,6 +24,7 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 | Command                | Description                       |
 | ---------------------- | --------------------------------- |
 | `npm run dev`          | Start dev server with auto-reload |
+| `npm run dev:format`   | Prettier -> start dev server      |
 | `npm run build`        | Compile TypeScript to `dist/`     |
 | `npm start`            | Run compiled output               |
 | `npm test`             | Run tests                         |
@@ -33,4 +34,4 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 
 ## Deployed URL
 
-[Add your deployed URL here]
+https://tcss460-group-5-api.onrender.com
