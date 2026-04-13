@@ -16,7 +16,7 @@ Evin, Kylen, Carson, Geo
 
 Where did you do Freshman/Sophomore year and/or where did you take 142/143? Did your 142/143 prepare you for this course?
 Evin - Freshman/Sophomore years & 142/143 at UWT. 142/143 were mostly review from high school, so not much prep for this course.
-Kylen -
+Kylen - I took 142 and 143 at UWT. I would not say they prepared me for this course. Those classes teach strictly java, OOP and a small intro to data structures. There was no JavaScript, nor was I taught git/github or any other tools I would need to be prepared for this class. In fact, the only reason I'm actually prepared for this class is because I did learning outside of my classes that I'm able to do the work in this class proficiently.
 Geo -
 Carson - I took 142 and 143 at UWT. I only worked with python before, so they definetly prepared me for this course.
 
