@@ -18,7 +18,7 @@ Where did you do Freshman/Sophomore year and/or where did you take 142/143?  Did
 Evin - Freshman/Sophomore years & 142/143 at UWT. 142/143 were mostly review from high school, so not much prep for this course.
 Kylen -
 Geo -
-Carson -
+Carson - I took 142 and 143 at UWT. I only worked with python before, so they definetly prepared me for this course.
 
 What are your programming strengths and weaknesses? 
 BE HONEST! It’s ok that you are not a good programmer. Let your group know so that the group as a whole can work with you. 
