@@ -3,10 +3,8 @@ info:
   title: TCSS 460 Group 5 API
   description: |
     **Team:** Group 5
-    **Deployed URL:** https://your-render-url.onrender.com
+    **Deployed URL:** https://tcss460-group-5-api.onrender.com
     A RESTful API for the TCSS 460 group project.
-  servers:
-    - url: https://tcss460-group-5-api.onrender.com
   version: 0.1.0
 servers:
   - url: https://your-render-url.onrender.com
