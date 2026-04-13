@@ -38,7 +38,7 @@ What is something you want others to know about yourself?
 I’m a climber, I ride my bike to campus everyday, I’m weird and that's ok. I play Clash of Apex Duty 18 hours a day and am semi-pro. Etc.
 Evin - This is my only class, so my time is dedicated exclusively to it. I do have a long (1hr+) commute though. I work on-campus TUES/WED/THUR
 Kylen -
-Geo -
+Geo - Likes table top games 
 Carson -
 
 Agenda Item 4:
