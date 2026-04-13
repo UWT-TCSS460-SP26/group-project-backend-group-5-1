@@ -17,7 +17,7 @@ Evin, Kylen, Carson, Geo
 Where did you do Freshman/Sophomore year and/or where did you take 142/143? Did your 142/143 prepare you for this course?
 Evin - Freshman/Sophomore years & 142/143 at UWT. 142/143 were mostly review from high school, so not much prep for this course.
 Kylen -
-Geo -
+Geo -  Freshman/Sophomore years & 142/143 at UWT. Didnt really prepare me for this course but we will get through it 
 Carson - I took 142 and 143 at UWT. I only worked with python before, so they definetly prepared me for this course.
 
 What are your programming strengths and weaknesses?
@@ -38,7 +38,7 @@ What is something you want others to know about yourself?
 I’m a climber, I ride my bike to campus everyday, I’m weird and that's ok. I play Clash of Apex Duty 18 hours a day and am semi-pro. Etc.
 Evin - This is my only class, so my time is dedicated exclusively to it. I do have a long (1hr+) commute though. I work on-campus TUES/WED/THUR
 Kylen -
-Geo -
+Geo - Likes table top games 
 Carson -
 
 Agenda Item 4:
