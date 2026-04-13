@@ -7,7 +7,7 @@ info:
     A RESTful API for the TCSS 460 group project.
   version: 0.1.0
 servers:
-  - url: https://your-render-url.onrender.com
+  - url: https://tcss460-group-5-api.onrender.com
     description: Production
   - url: http://localhost:3000
     description: Local development

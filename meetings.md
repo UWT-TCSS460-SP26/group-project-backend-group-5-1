@@ -37,9 +37,9 @@ Carson - Other classes, work
 What is something you want others to know about yourself?
 I’m a climber, I ride my bike to campus everyday, I’m weird and that's ok. I play Clash of Apex Duty 18 hours a day and am semi-pro. Etc.
 Evin - This is my only class, so my time is dedicated exclusively to it. I do have a long (1hr+) commute though. I work on-campus TUES/WED/THUR
-Kylen -
+Kylen - I like programming and really want to break into a backend engineering role by the end of 2026. I like to play games, read light-novels and manga, watch anime. Am currently looking for other hobbies outside of class as well because my life is a little boring right now since it's really just work, exercise, eat, sleep for me right now.
 Geo - Likes table top games 
-Carson -
+Carson - Plays trading card games
 
 Agenda Item 4:
 Decide on a group structure.
