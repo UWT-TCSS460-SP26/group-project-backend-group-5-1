@@ -1,4 +1,4 @@
-Meeting 1
+Week 2 Meeting 1
 
 Agenda Item 1:
 Decide on a Meeting Manager (This person is NOT the group leader. The meeting manager’s role is to keep the group on task during the meeting)
@@ -38,7 +38,7 @@ What is something you want others to know about yourself?
 I’m a climber, I ride my bike to campus everyday, I’m weird and that's ok. I play Clash of Apex Duty 18 hours a day and am semi-pro. Etc.
 Evin - This is my only class, so my time is dedicated exclusively to it. I do have a long (1hr+) commute though. I work on-campus TUES/WED/THUR
 Kylen - I like programming and really want to break into a backend engineering role by the end of 2026. I like to play games, read light-novels and manga, watch anime. Am currently looking for other hobbies outside of class as well because my life is a little boring right now since it's really just work, exercise, eat, sleep for me right now.
-Geo - Likes table top games 
+Geo - Likes table top games
 Carson - Plays trading card games
 
 Agenda Item 4:
@@ -72,3 +72,45 @@ https://www.when2meet.com/
 Agenda Item 7:
 Wrap-up
 Smalltalk, critiques of the CS major pathway at UWT, other possible meeting times / strategies.
+
+Week 3 Meeting 1
+initial API design plans
+
+some routes from IMDB:
+GET /movie/popular
+GET /tv/popular
+GET /discover/movie Filter movies by genre, year, rating, region, etc.
+GET /discover/tv Filter TV shows similarly
+GET /movie/:movie_id
+GET /tv/:tv_id
+GET /discover
+
+some information from movie details we might want:
+Adult
+Backdrop_path
+Genre {
+id:
+name:
+}
+Id
+Imbd_id
+Origin_country
+Original_language
+Original_title
+Overview
+Popularity
+Poster_path
+Production_companies {
+Id
+Logo_path
+Name
+origin_country
+}
+Release_date
+runtime
+Spoken_langagues {
+English_name
+Iso_639_1
+name
+}
+Title
