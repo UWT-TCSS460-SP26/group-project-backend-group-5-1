@@ -4,21 +4,23 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch;
 const mockMovieResponse = {
   adult: false,
-  backdrop_path: "/2w4xG178RpB4MDAIfTkqAuSJzec.jpg",
-  genres: [{ id: 12, name: "Adventure" }],
+  backdrop_path: '/2w4xG178RpB4MDAIfTkqAuSJzec.jpg',
+  genres: [{ id: 12, name: 'Adventure' }],
   id: 11,
-  imdb_id: "tt0076759",
-  origin_country: ["US"],
-  original_language: "en",
-  original_title: "Star Wars",
-  overview: "Princess Leia...",
+  imdb_id: 'tt0076759',
+  origin_country: ['US'],
+  original_language: 'en',
+  original_title: 'Star Wars',
+  overview: 'Princess Leia...',
   popularity: 20.69,
-  poster_path: "/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
-  production_companies: [{ id: 1, logo_path: "/logo.png", name: "Lucasfilm", origin_country: "US" }],
-  release_date: "1977-05-25",
+  poster_path: '/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg',
+  production_companies: [
+    { id: 1, logo_path: '/logo.png', name: 'Lucasfilm', origin_country: 'US' },
+  ],
+  release_date: '1977-05-25',
   runtime: 121,
-  spoken_languages: [{ english_name: "English", iso_639_1: "en", name: "English" }],
-  title: "Star Wars",
+  spoken_languages: [{ english_name: 'English', iso_639_1: 'en', name: 'English' }],
+  title: 'Star Wars',
 };
 beforeEach(() => {
   mockFetch.mockReset();
@@ -38,8 +40,8 @@ describe('Movie Routes', () => {
       expect(res.body.id).toBe(11);
       expect(res.body.imdb_id).toBe('tt0076759');
       expect(res.body.adult).toBe(false);
-      expect(res.body.genres).toEqual([{ id: 12, name: "Adventure" }]);
-      expect(res.body.origin_country).toEqual(["US"]);
+      expect(res.body.genres).toEqual([{ id: 12, name: 'Adventure' }]);
+      expect(res.body.origin_country).toEqual(['US']);
       expect(res.body.original_language).toBe('en');
       expect(res.body.runtime).toBe(121);
       expect(res.body.release_date).toBe('1977-05-25');

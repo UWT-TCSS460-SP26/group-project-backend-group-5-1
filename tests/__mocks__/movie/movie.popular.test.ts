@@ -1,4 +1,4 @@
-S
+S;
 import request from 'supertest';
 import { app } from '../src/app';
 const mockFetch = jest.fn();
@@ -8,16 +8,16 @@ const mockPopularMoviesResponse = {
   results: [
     {
       adult: false,
-      backdrop_path: "/gMJngTNfaqCSCqGD4y8lVMZXKDn.jpg",
+      backdrop_path: '/gMJngTNfaqCSCqGD4y8lVMZXKDn.jpg',
       genre_ids: [28, 12, 878],
       id: 640146,
-      original_language: "en",
-      original_title: "Ant-Man and the Wasp: Quantumania",
-      overview: "Super-Hero partners Scott Lang and Hope van Dyne...",
+      original_language: 'en',
+      original_title: 'Ant-Man and the Wasp: Quantumania',
+      overview: 'Super-Hero partners Scott Lang and Hope van Dyne...',
       popularity: 8567.865,
-      poster_path: "/ngl2FKBlU4fhbdsrtdom9LVLBXw.jpg",
-      release_date: "2023-02-15",
-      title: "Ant-Man and the Wasp: Quantumania",
+      poster_path: '/ngl2FKBlU4fhbdsrtdom9LVLBXw.jpg',
+      release_date: '2023-02-15',
+      title: 'Ant-Man and the Wasp: Quantumania',
     },
   ],
   total_pages: 38029,
