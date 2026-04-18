@@ -1,9 +1,8 @@
+S
 import request from 'supertest';
 import { app } from '../src/app';
-
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
-
 const mockPopularMoviesResponse = {
   page: 1,
   results: [
@@ -24,23 +23,19 @@ const mockPopularMoviesResponse = {
   total_pages: 38029,
   total_results: 760569,
 };
-
 beforeEach(() => {
   mockFetch.mockReset();
   process.env.TMDB_API_KEY = 'test-api-key';
 });
-
 describe('Movie Routes', () => {
-
-  describe('GET /movie/popular', () => {
+  describe('GET /v1/movies/popular', () => {
     it('returns popular movies on success', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => mockPopularMoviesResponse,
       });
-
-      const res = await request(app).get('/movie/popular');
+      const res = await request(app).get('/v1/movies/popular');
       expect(res.status).toBe(200);
       expect(res.body.results).toBeDefined();
       expect(res.body.results[0].title).toBe('Ant-Man and the Wasp: Quantumania');
@@ -51,20 +46,18 @@ describe('Movie Routes', () => {
       expect(res.body.results[0].release_date).toBe('2023-02-15');
       expect(res.body.page).toBe(1);
     });
-
     it('returns 502 when fetch throws', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
-      const res = await request(app).get('/movie/popular');
+      const res = await request(app).get('/v1/movies/popular');
       expect(res.status).toBe(502);
     });
-
     it('returns upstream error on API failure', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 401,
         json: async () => ({ message: 'Invalid API key' }),
       });
-      const res = await request(app).get('/movie/popular');
+      const res = await request(app).get('/v1/movies/popular');
       expect(res.status).toBe(401);
     });
   });

@@ -1,9 +1,7 @@
 import request from 'supertest';
 import { app } from '../src/app';
-
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
-
 const mockMovieResponse = {
   adult: false,
   backdrop_path: "/2w4xG178RpB4MDAIfTkqAuSJzec.jpg",
@@ -22,24 +20,19 @@ const mockMovieResponse = {
   spoken_languages: [{ english_name: "English", iso_639_1: "en", name: "English" }],
   title: "Star Wars",
 };
-
-
-
 beforeEach(() => {
   mockFetch.mockReset();
   process.env.TMDB_API_KEY = 'test-api-key';
 });
-
 describe('Movie Routes', () => {
-  describe('GET /movie/:movie_id', () => {
+  describe('GET /v1/movies/:id', () => {
     it('returns transformed movie details', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => mockMovieResponse,
       });
-
-      const res = await request(app).get('/movie/11');
+      const res = await request(app).get('/v1/movies/11');
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Star Wars');
       expect(res.body.id).toBe(11);
@@ -53,27 +46,25 @@ describe('Movie Routes', () => {
       expect(res.body.production_companies[0].name).toBe('Lucasfilm');
       expect(res.body.spoken_languages[0].english_name).toBe('English');
     });
-
     it('returns 404 when movie not found', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 404,
         json: async () => ({ message: 'movie not found' }),
       });
-      const res = await request(app).get('/movie/999999');
+      const res = await request(app).get('/v1/movies/999999');
       expect(res.status).toBe(404);
     });
-
     it('returns 502 when fetch throws', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
-      const res = await request(app).get('/movie/11');
+      const res = await request(app).get('/v1/movies/11');
       expect(res.status).toBe(502);
     });
   });
   describe('Missing API key', () => {
     it('returns 500 when TMDB_API_KEY is not set', async () => {
       delete process.env.TMDB_API_KEY;
-      const res = await request(app).get('/movie/11');
+      const res = await request(app).get('/v1/movies/11');
       expect(res.status).toBe(500);
       expect(res.body.error).toMatch(/TMDB_API_KEY/);
     });
