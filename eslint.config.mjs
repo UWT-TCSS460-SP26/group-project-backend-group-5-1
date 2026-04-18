@@ -23,6 +23,7 @@ export default [
         require: 'readonly',
         module: 'readonly',
         exports: 'readonly',
+        URL: 'readonly',
       },
     },
     plugins: {
