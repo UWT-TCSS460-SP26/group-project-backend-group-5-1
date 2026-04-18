@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
 import { apiReference } from '@scalar/express-api-reference';
+import { routes } from './routes';
 
 const app = express();
 
@@ -28,9 +29,12 @@ app.get('/health', (_request: Request, response: Response) => {
   });
 });
 
+app.use(routes);
+
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
   response.status(404).json({ error: 'Route not found' });
 });
+
 
 export { app };
