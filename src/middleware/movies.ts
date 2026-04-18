@@ -69,6 +69,12 @@ export const trimMovieFields = (req: Request, res: Response, next: NextFunction)
 // validateMovieId
 export const validateMovieId = (req: Request, res: Response, next: NextFunction): void => {
   const { id } = req.params;
+
+  if (typeof id !== 'string') {
+    res.status(400).json({ error: 'Movie id must be a string' });
+    return;
+  }
+
   const parsed = parseInt(id, 10);
 
   if (isNaN(parsed) || parsed < 1) {
