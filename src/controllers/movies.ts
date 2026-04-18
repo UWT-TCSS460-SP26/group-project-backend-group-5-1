@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 
 const TMDB_PAGE_SIZE = 20;
 
-const fetchTmdb = async (path: string, params: Record<string, string | undefined> = {}): Promise<any> => {
+const fetchTmdb = async (
+  path: string,
+  params: Record<string, string | undefined> = {}
+): Promise<any> => {
   const url = new URL(`${process.env.TMDB_BASE_URL}${path}`);
   url.searchParams.set('api_key', process.env.TMDB_API_KEY as string);
 
@@ -23,7 +26,11 @@ const fetchTmdb = async (path: string, params: Record<string, string | undefined
   return response.json();
 };
 
-const fetchMoviePage = async (path: string, params: Record<string, string | undefined>, page: number): Promise<any[]> => {
+const fetchMoviePage = async (
+  path: string,
+  params: Record<string, string | undefined>,
+  page: number
+): Promise<any[]> => {
   const data = await fetchTmdb(path, { ...params, page: page.toString() });
   return data.results;
 };
@@ -71,7 +78,7 @@ export const getMovies = async (req: Request, res: Response) => {
     }
 
     const pages = Array.from({ length: pagesNeeded }, (_, i) => i + 1);
-    const results = await Promise.all(pages.map(page => fetchMoviePage(path, params, page)));
+    const results = await Promise.all(pages.map((page) => fetchMoviePage(path, params, page)));
     const merged = results.flat().slice(0, parsedLimit);
 
     res.json(merged);
@@ -110,7 +117,9 @@ export const getPopularMovies = async (req: Request, res: Response) => {
     };
 
     const pages = Array.from({ length: pagesNeeded }, (_, i) => i + 1);
-    const results = await Promise.all(pages.map(page => fetchMoviePage('/movie/popular', params, page)));
+    const results = await Promise.all(
+      pages.map((page) => fetchMoviePage('/movie/popular', params, page))
+    );
     const merged = results.flat().slice(0, parsedLimit);
 
     res.json(merged);

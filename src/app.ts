@@ -36,5 +36,4 @@ app.use((_request: Request, response: Response) => {
   response.status(404).json({ error: 'Route not found' });
 });
 
-
 export { app };

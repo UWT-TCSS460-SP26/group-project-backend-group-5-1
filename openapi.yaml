@@ -159,7 +159,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
- 
+
   /v1/movies/popular:
     get:
       tags: [Movies]
@@ -208,7 +208,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
- 
+
   /v1/movies/{id}:
     get:
       tags: [Movies]
@@ -263,7 +263,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
- 
+
 components:
   schemas:
     MovieSummary:
@@ -288,7 +288,7 @@ components:
           nullable: true
           description: Relative path to the poster image on TMDB's image CDN.
           example: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
- 
+
     MovieDetail:
       type: object
       description: Detailed movie information returned from the single movie endpoint.
@@ -324,7 +324,7 @@ components:
           type: string
           description: The movie title in the requested language.
           example: Spider-Man
- 
+
     Error:
       type: object
       properties:

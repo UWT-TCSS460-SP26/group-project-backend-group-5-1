@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { getMovies, getMovieById, getPopularMovies } from '../../controllers/movies';
-import { validateLimit, trimMovieFields, validateMovieId, trimMovieByIdFields } from '../../middleware/movies';
+import {
+  validateLimit,
+  trimMovieFields,
+  validateMovieId,
+  trimMovieByIdFields,
+} from '../../middleware/movies';
 
 const moviesRouter = Router();
 
@@ -10,4 +15,3 @@ moviesRouter.get('/', validateLimit, trimMovieFields, getMovies);
 moviesRouter.get('/:id', validateMovieId, trimMovieByIdFields, getMovieById);
 
 export { moviesRouter };
-
