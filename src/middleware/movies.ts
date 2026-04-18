@@ -22,17 +22,17 @@ export const validateLimit = (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
-
-
 export const trimMovieFields = (req: Request, res: Response, next: NextFunction) => {
-
   const FIELDS_TO_KEEP = ['backdrop_path', 'id', 'title', 'poster_path'];
 
   const filterMovie = (movie: any) =>
-    FIELDS_TO_KEEP.reduce((acc, field) => {
-    if (field in movie) acc[field] = movie[field];
-    return acc;
-  }, {} as Record<string, any>);
+    FIELDS_TO_KEEP.reduce(
+      (acc, field) => {
+        if (field in movie) acc[field] = movie[field];
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
   const originalJson = res.json.bind(res);
 
@@ -62,15 +62,26 @@ export const validateMovieId = (req: Request, res: Response, next: NextFunction)
 };
 
 export const trimMovieByIdFields = (req: Request, res: Response, next: NextFunction) => {
-  const FIELDS_TO_KEEP = ['adult', 'genre_ids', 'original_language', 'original_title', 'overview', 'release_date', 'title'];
+  const FIELDS_TO_KEEP = [
+    'adult',
+    'genre_ids',
+    'original_language',
+    'original_title',
+    'overview',
+    'release_date',
+    'title',
+  ];
   const originalJson = res.json.bind(res);
 
   res.json = (data: any) => {
     if (data && !data.error) {
-      const filtered = FIELDS_TO_KEEP.reduce((acc, field) => {
-        if (field in data) acc[field] = data[field];
-        return acc;
-      }, {} as Record<string, any>);
+      const filtered = FIELDS_TO_KEEP.reduce(
+        (acc, field) => {
+          if (field in data) acc[field] = data[field];
+          return acc;
+        },
+        {} as Record<string, any>
+      );
       return originalJson(filtered);
     }
     return originalJson(data);
