@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { discoverRouter } from './discover';
+import { moviesRouter } from './movies';
 
 const v1Routes = Router();
 
-v1Routes.use('/discover', discoverRouter);
+v1Routes.use('/movies', moviesRouter);
 
 export { v1Routes };
