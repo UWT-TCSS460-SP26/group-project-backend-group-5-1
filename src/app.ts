@@ -1,15 +1,12 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
+import axios from 'axios';
 import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
 
 const app = express();
-import tvRoutes from "./routes/tvRoutes";
-
-app.use("/tv", tvRoutes);
-
 
 // Application-level middleware
 app.use(cors());
@@ -34,6 +31,23 @@ app.get('/health', (_request: Request, response: Response) => {
 });
 
 app.use(routes);
+
+// Error handler — must be after all routes
+app.use((err: unknown, _request: Request, response: Response, _next: NextFunction) => {
+  // Forward HTTP errors from axios (e.g. TMDB 404) as-is
+  if (axios.isAxiosError(err) && err.response) {
+    return response.status(err.response.status).json({ error: err.response.data });
+  }
+
+  // Handle errors thrown manually with a status property (e.g. 400 validation errors)
+  if (err instanceof Error && 'status' in err) {
+    const status = (err as Error & { status: number }).status;
+    return response.status(status).json({ error: err.message });
+  }
+
+  // Fallback
+  return response.status(500).json({ error: 'Internal server error' });
+});
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {

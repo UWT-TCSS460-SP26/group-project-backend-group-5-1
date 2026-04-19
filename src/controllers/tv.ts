@@ -1,27 +1,21 @@
-import { Request, Response, NextFunction } from "express";
-import {
-  searchTvShows,
-  getPopularTvShows,
-  getTvDetails,
-} from "../services/tvService";
+import { Request, Response, NextFunction } from 'express';
+import { searchTvShows, getPopularTvShows, getTvDetails } from '../services/tvService';
 
 function toStringParam(param: unknown): string | undefined {
-  if (typeof param === "string") return param;
+  if (typeof param === 'string') return param;
 
   if (Array.isArray(param)) {
     const first = param[0];
-    return typeof first === "string" ? first : undefined;
+    return typeof first === 'string' ? first : undefined;
   }
 
   // Express sometimes gives objects (ParsedQs)
-  if (param && typeof param === "object") {
+  if (param && typeof param === 'object') {
     return undefined;
   }
 
   return undefined;
 }
-
-
 
 export async function handleSearchTv(req: Request, res: Response, next: NextFunction) {
   try {
