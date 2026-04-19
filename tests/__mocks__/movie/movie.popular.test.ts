@@ -1,4 +1,3 @@
-S;
 import request from 'supertest';
 import { app } from '../src/app';
 const mockFetch = jest.fn();
