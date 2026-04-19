@@ -46,9 +46,41 @@ paths:
       summary: Search for TV shows
       description: Returns a list of TV shows matching the search query.
       parameters:
-        - in: query
-          name: q
-          required: true
+        - name: query
+          in: query
+          description: Text search query (e.g. "spiderman"). When provided, all filter parameters are ignored.
+          required: false
+          schema:
+            type: string
+          example: spiderman
+        - name: limit
+          in: query
+          description: Maximum number of results to return. Must be a positive integer no greater than 100.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          example: 20
+        - name: language
+          in: query
+          description: Language of results in BCP 47 format.
+          required: false
+          schema:
+            type: string
+          example: en-US
+        - name: primary_release_date_gte
+          in: query
+          description: Filter movies released on or after this date (YYYY-MM-DD). Only applies when `query` is not provided.
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2020-01-01'
+        - name: primary_release_date_lte
+          in: query
+          description: Filter movies released on or before this date (YYYY-MM-DD). Only applies when `query` is not provided.
+          required: false
           schema:
             type: string
           description: Search term for TV shows.
@@ -107,8 +139,16 @@ paths:
           required: false
           schema:
             type: integer
-            default: 1
-          description: Page number for paginated results.
+            minimum: 1
+            maximum: 50
+          example: 20
+        - name: language
+          in: query
+          description: Language of results in BCP 47 format.
+          required: false
+          schema:
+            type: string
+          example: en-US
       responses:
         "200":
           description: Popular TV shows
