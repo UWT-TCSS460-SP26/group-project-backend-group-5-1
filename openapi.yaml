@@ -39,14 +39,12 @@ paths:
                   timestamp:
                     type: string
                     format: date-time
-  /v1/movies:
+  /tv/search:
     get:
-      tags: [Movies]
-      summary: Search or discover movies
-      description: >
-        Returns a list of movies. If a `query` parameter is provided, performs a
-        text search via TMDB's search endpoint. Otherwise, uses TMDB's discover
-        endpoint with the provided filter parameters.
+      tags:
+        - TV
+      summary: Search for TV shows
+      description: Returns a list of TV shows matching the search query.
       parameters:
         - name: query
           in: query
@@ -85,90 +83,59 @@ paths:
           required: false
           schema:
             type: string
-            format: date
-          example: '2024-12-31'
-        - name: with_genres
-          in: query
-          description: Comma-separated list of TMDB genre IDs to filter by. Only applies when `query` is not provided.
+          description: Search term for TV shows.
+        - in: query
+          name: year
           required: false
           schema:
             type: string
-          example: '28,878'
-        - name: vote_average_gte
-          in: query
-          description: Filter by minimum vote average. Only applies when `query` is not provided.
-          required: false
-          schema:
-            type: number
-            format: float
-          example: 7.0
-        - name: vote_average_lte
-          in: query
-          description: Filter by maximum vote average. Only applies when `query` is not provided.
-          required: false
-          schema:
-            type: number
-            format: float
-          example: 9.0
-        - name: with_runtime_gte
-          in: query
-          description: Filter by minimum runtime in minutes. Only applies when `query` is not provided.
+          description: Filter results by first air date year.
+        - in: query
+          name: page
           required: false
           schema:
             type: integer
-          example: 90
-        - name: with_runtime_lte
-          in: query
-          description: Filter by maximum runtime in minutes. Only applies when `query` is not provided.
-          required: false
-          schema:
-            type: integer
-          example: 180
+            default: 1
+          description: Page number for paginated results.
       responses:
-        '200':
-          description: A list of movies matching the search or filter criteria.
+        "200":
+          description: Successful TV search results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MovieSummary'
-              example:
-                - id: 557
-                  title: Spider-Man
-                  backdrop_path: /zQ8AxTPiCiS5nnwXpwTBPBHSaa5.jpg
-                  poster_path: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
-        '400':
-          description: Invalid query parameters.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  totalResults:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TvSearchResult"
               examples:
-                invalidLimit:
-                  summary: Invalid limit value
+                example:
                   value:
-                    error: limit must be a positive integer
-                limitTooHigh:
-                  summary: Limit exceeds maximum
-                  value:
-                    error: limit must not exceed 100
-        '500':
-          description: Internal server error or TMDB API failure.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                    page: 1
+                    totalPages: 25
+                    totalResults: 496
+                    results:
+                      - id: 4607
+                        title: "Lost"
+                        posterUrl: "https://image.tmdb.org/t/p/w500/og65OaTZU6YUJAbqxeKjCa3kY1E.jpg"
+                        firstAirDate: "2004-09-22"
 
-  /v1/movies/popular:
+  /tv/popular:
     get:
-      tags: [Movies]
-      summary: Get popular movies
-      description: Returns a list of currently popular movies from TMDB.
+      tags:
+        - TV
+      summary: Get popular TV shows
+      description: Returns a list of currently popular TV shows.
       parameters:
-        - name: limit
-          in: query
-          description: Maximum number of results to return. Must be a positive integer no greater than 100.
+        - in: query
+          name: page
           required: false
           schema:
             type: integer
@@ -183,152 +150,90 @@ paths:
             type: string
           example: en-US
       responses:
-        '200':
-          description: A list of popular movies.
+        "200":
+          description: Popular TV shows
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MovieSummary'
-              example:
-                - id: 557
-                  title: Spider-Man
-                  backdrop_path: /zQ8AxTPiCiS5nnwXpwTBPBHSaa5.jpg
-                  poster_path: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
-        '400':
-          description: Invalid query parameters.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error or TMDB API failure.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  totalResults:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TvSearchResult"
 
-  /v1/movies/{id}:
+  /tv/{id}:
     get:
-      tags: [Movies]
-      summary: Get a movie by ID
-      description: Returns detailed information for a specific movie by its TMDB movie ID.
+      tags:
+        - TV
+      summary: Get TV show details
+      description: Returns detailed information for a specific TV show.
       parameters:
-        - name: id
-          in: path
-          description: The TMDB movie ID.
+        - in: path
+          name: id
           required: true
           schema:
-            type: integer
-            minimum: 1
-          example: 557
+            type: string
+          description: TMDB TV show ID.
       responses:
-        '200':
-          description: Detailed information about the requested movie.
+        "200":
+          description: TV show details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MovieDetail'
-              example:
-                adult: false
-                genre_ids: [28, 878]
-                original_language: en
-                original_title: Spider-Man
-                overview: >
-                  After being bitten by a genetically altered spider at Oscorp, nerdy but
-                  endearing high school student Peter Parker is endowed with amazing powers
-                  to become the superhero known as Spider-Man.
-                release_date: '2002-05-01'
-                title: Spider-Man
-        '400':
-          description: Invalid movie ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                error: Movie id must be a positive integer
-        '404':
-          description: Movie not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                error: Movie with id 99999 not found
-        '500':
-          description: Internal server error or TMDB API failure.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
+                $ref: "#/components/schemas/TvDetails"
 components:
   schemas:
-    MovieSummary:
+    TvSearchResult:
       type: object
-      description: A condensed movie object returned from list endpoints.
       properties:
         id:
           type: integer
-          description: The TMDB movie ID.
-          example: 557
         title:
           type: string
-          description: The movie title.
-          example: Spider-Man
-        backdrop_path:
+        posterUrl:
           type: string
           nullable: true
-          description: Relative path to the backdrop image on TMDB's image CDN.
-          example: /zQ8AxTPiCiS5nnwXpwTBPBHSaa5.jpg
-        poster_path:
+        firstAirDate:
           type: string
           nullable: true
-          description: Relative path to the poster image on TMDB's image CDN.
-          example: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
 
-    MovieDetail:
+    TvDetails:
       type: object
-      description: Detailed movie information returned from the single movie endpoint.
       properties:
-        adult:
-          type: boolean
-          description: Whether the movie is an adult title.
-          example: false
-        genre_ids:
+        id:
+          type: integer
+        title:
+          type: string
+        posterUrl:
+          type: string
+          nullable: true
+        synopsis:
+          type: string
+          nullable: true
+        firstAirDate:
+          type: string
+          nullable: true
+        genres:
           type: array
-          description: List of TMDB genre IDs associated with the movie.
           items:
-            type: integer
-          example: [28, 878]
-        original_language:
+            type: string
+        status:
           type: string
-          description: The original language of the movie in ISO 639-1 format.
-          example: en
-        original_title:
-          type: string
-          description: The movie title in its original language.
-          example: Spider-Man
-        overview:
-          type: string
-          description: A short plot summary of the movie.
-          example: After being bitten by a genetically altered spider...
-        release_date:
-          type: string
-          format: date
-          description: The theatrical release date of the movie (YYYY-MM-DD).
-          example: '2002-05-01'
-        title:
-          type: string
-          description: The movie title in the requested language.
-          example: Spider-Man
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          description: A human-readable error message.
-          example: Movie with id 99999 not found
+          nullable: true
+        numberOfSeasons:
+          type: integer
+          nullable: true
+        numberOfEpisodes:
+          type: integer
+          nullable: true
+        networks:
+          type: array
+          items:
+            type: string
