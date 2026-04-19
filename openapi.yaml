@@ -62,7 +62,7 @@ paths:
           schema:
             type: integer
             minimum: 1
-            maximum: 100
+            maximum: 50
           example: 20
         - name: language
           in: query
@@ -173,7 +173,7 @@ paths:
           schema:
             type: integer
             minimum: 1
-            maximum: 100
+            maximum: 50
           example: 20
         - name: language
           in: query
