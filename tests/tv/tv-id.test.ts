@@ -32,7 +32,9 @@ const mockTvDetails = {
   last_episode_to_air: { id: 1, name: 'Finale', episode_number: 10, season_number: 3 },
   next_episode_to_air: null,
   networks: [{ id: 1, name: 'HBO', logo_path: '/hbo.png', origin_country: 'US' }],
-  production_companies: [{ id: 1, name: 'Test Productions', logo_path: null, origin_country: 'US' }],
+  production_companies: [
+    { id: 1, name: 'Test Productions', logo_path: null, origin_country: 'US' },
+  ],
   production_countries: [{ iso_3166_1: 'US', name: 'United States of America' }],
   created_by: [{ id: 1, name: 'Test Creator', profile_path: null }],
 };

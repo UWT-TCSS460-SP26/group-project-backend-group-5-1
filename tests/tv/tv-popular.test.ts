@@ -63,7 +63,9 @@ describe('GET /v1/tv/popular', () => {
   });
 
   it('returns 500 when TMDB API fails', async () => {
-    (tvService.fetchTvPage as jest.Mock).mockRejectedValue(new Error('TMDB error: 500 Internal Server Error'));
+    (tvService.fetchTvPage as jest.Mock).mockRejectedValue(
+      new Error('TMDB error: 500 Internal Server Error')
+    );
 
     const response = await request(app).get('/v1/tv/popular');
     expect(response.status).toBe(500);
