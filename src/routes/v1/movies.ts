@@ -2,16 +2,16 @@ import { Router } from 'express';
 import { getMovies, getMovieById, getPopularMovies } from '../../controllers/movies';
 import {
   validateLimit,
-  trimMovieFields,
+  trimFields,
   validateMovieId,
-  trimMovieByIdFields,
+  trimByIdFields,
 } from '../../middleware/movies';
+import { MOVIE_SUMMARY_FIELDS, MOVIE_DETAIL_FIELDS } from '../../mappers/movies';
 
 const moviesRouter = Router();
 
-// TODO: update function to have non-default response
-moviesRouter.get('/popular', validateLimit, trimMovieFields, getPopularMovies);
-moviesRouter.get('/', validateLimit, trimMovieFields, getMovies);
-moviesRouter.get('/:id', validateMovieId, trimMovieByIdFields, getMovieById);
+moviesRouter.get('/', validateLimit, trimFields(MOVIE_SUMMARY_FIELDS), getMovies);
+moviesRouter.get('/popular', validateLimit, trimFields(MOVIE_SUMMARY_FIELDS), getPopularMovies);
+moviesRouter.get('/:id', validateMovieId, trimByIdFields(MOVIE_DETAIL_FIELDS), getMovieById);
 
 export { moviesRouter };

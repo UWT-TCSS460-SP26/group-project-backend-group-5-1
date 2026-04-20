@@ -8,4 +8,9 @@ module.exports = {
   moduleNameMapper: {
     '^@scalar/express-api-reference$': '<rootDir>/tests/__mocks__/scalarMock.cjs',
   },
+  globals: {
+    'ts-jest': {
+      tsconfig: './tsconfig.test.json',
+    },
+  },
 };

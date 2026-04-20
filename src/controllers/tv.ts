@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
-import { fetchTmdb, fetchMoviePage, parseMovieQuery, TMDB_PAGE_SIZE } from '../services/movies';
+import { fetchTmdb, fetchTvPage, parseTvQuery, TMDB_PAGE_SIZE } from '../services/tv';
 
-export const getMovies = async (req: Request, res: Response): Promise<void> => {
+export const getTv = async (req: Request, res: Response): Promise<void> => {
   try {
     const { limit } = req.query;
 
     const parsedLimit = limit ? parseInt(limit as string, 10) : TMDB_PAGE_SIZE;
     const pagesNeeded = Math.ceil(parsedLimit / TMDB_PAGE_SIZE);
 
-    const { path, params } = parseMovieQuery(req.query);
+    const { path, params } = parseTvQuery(req.query);
 
     const pages = Array.from({ length: pagesNeeded }, (_, i) => i + 1);
-    const results = await Promise.all(pages.map((page) => fetchMoviePage(path, params, page)));
+    const results = await Promise.all(pages.map((page) => fetchTvPage(path, params, page)));
     const merged = results.flat().slice(0, parsedLimit);
 
     res.json(merged);
@@ -21,14 +21,14 @@ export const getMovies = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getMovieById = async (req: Request, res: Response): Promise<void> => {
+export const getTvById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const data = (await fetchTmdb(`/movie/${id}`)) as { id: number };
+    const data = (await fetchTmdb(`/tv/${id}`)) as { id: number };
     res.json(data);
   } catch (error) {
     if ((error as { status?: number }).status === 404) {
-      res.status(404).json({ error: `Movie with id ${req.params.id} not found` });
+      res.status(404).json({ error: `TV show with id ${req.params.id} not found` });
       return;
     }
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -36,7 +36,7 @@ export const getMovieById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-export const getPopularMovies = async (req: Request, res: Response): Promise<void> => {
+export const getPopularTv = async (req: Request, res: Response): Promise<void> => {
   try {
     const { language, limit } = req.query;
 
@@ -49,7 +49,7 @@ export const getPopularMovies = async (req: Request, res: Response): Promise<voi
 
     const pages = Array.from({ length: pagesNeeded }, (_, i) => i + 1);
     const results = await Promise.all(
-      pages.map((page) => fetchMoviePage('/movie/popular', params, page))
+      pages.map((page) => fetchTvPage('/tv/popular', params, page))
     );
     const merged = results.flat().slice(0, parsedLimit);
 
