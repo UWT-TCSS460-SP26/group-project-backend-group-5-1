@@ -85,34 +85,61 @@ export const validateMovieId = (req: Request, res: Response, next: NextFunction)
   next();
 };
 
-// trimMovieByIdFields
-const MOVIE_DETAIL_FIELDS = [
-  'adult',
-  'genre_ids',
-  'original_language',
-  'original_title',
-  'overview',
-  'release_date',
-  'title',
-] as const;
+// trimByIdFields
+export const trimByIdFields =
+  (fieldsToKeep: readonly string[]) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    const originalJson = res.json.bind(res);
 
-type MovieDetailField = (typeof MOVIE_DETAIL_FIELDS)[number];
-type FilteredMovieDetail = Partial<Record<MovieDetailField, unknown>>;
+    res.json = (data: unknown) => {
+      if (typeof data === 'object' && data !== null && !('error' in data)) {
+        const item = data as Record<string, unknown>;
+        const filtered = fieldsToKeep.reduce(
+          (acc, field) => {
+            if (field in item) acc[field] = item[field];
+            return acc;
+          },
+          {} as Record<string, unknown>
+        );
+        return originalJson(filtered);
+      }
+      return originalJson(data);
+    };
 
-export const trimMovieByIdFields = (req: Request, res: Response, next: NextFunction): void => {
-  const originalJson = res.json.bind(res);
-
-  res.json = (data: unknown) => {
-    if (typeof data === 'object' && data !== null && !('error' in data)) {
-      const movie = data as Record<string, unknown>;
-      const filtered = MOVIE_DETAIL_FIELDS.reduce((acc, field) => {
-        if (field in movie) acc[field] = movie[field];
-        return acc;
-      }, {} as FilteredMovieDetail);
-      return originalJson(filtered);
-    }
-    return originalJson(data);
+    next();
   };
 
-  next();
-};
+// trimFields
+export const trimFields =
+  (fieldsToKeep: readonly string[]) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    const originalJson = res.json.bind(res);
+
+    const filter = (item: Record<string, unknown>): Record<string, unknown> =>
+      fieldsToKeep.reduce(
+        (acc, field) => {
+          if (field in item) acc[field] = item[field];
+          return acc;
+        },
+        {} as Record<string, unknown>
+      );
+
+    res.json = (data: unknown) => {
+      if (Array.isArray(data)) {
+        return originalJson(data.map((item: Record<string, unknown>) => filter(item)));
+      }
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'results' in data &&
+        Array.isArray((data as Record<string, unknown>).results)
+      ) {
+        return originalJson(
+          ((data as Record<string, unknown>).results as Record<string, unknown>[]).map(filter)
+        );
+      }
+      return originalJson(data);
+    };
+
+    next();
+  };

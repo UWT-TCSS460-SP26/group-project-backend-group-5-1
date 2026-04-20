@@ -66,7 +66,7 @@ paths:
             default: 1
           description: Page number for paginated results.
       responses:
-        "200":
+        '200':
           description: Successful TV search results
           content:
             application/json:
@@ -82,7 +82,7 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: "#/components/schemas/TvSearchResult"
+                      $ref: '#/components/schemas/TvSearchResult'
               examples:
                 example:
                   value:
@@ -91,9 +91,9 @@ paths:
                     totalResults: 496
                     results:
                       - id: 4607
-                        title: "Lost"
-                        posterUrl: "https://image.tmdb.org/t/p/w500/og65OaTZU6YUJAbqxeKjCa3kY1E.jpg"
-                        firstAirDate: "2004-09-22"
+                        title: 'Lost'
+                        posterUrl: 'https://image.tmdb.org/t/p/w500/og65OaTZU6YUJAbqxeKjCa3kY1E.jpg'
+                        firstAirDate: '2004-09-22'
 
   /tv/popular:
     get:
@@ -110,7 +110,7 @@ paths:
             default: 1
           description: Page number for paginated results.
       responses:
-        "200":
+        '200':
           description: Popular TV shows
           content:
             application/json:
@@ -126,7 +126,7 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: "#/components/schemas/TvSearchResult"
+                      $ref: '#/components/schemas/TvSearchResult'
 
   /tv/{id}:
     get:
@@ -142,12 +142,12 @@ paths:
             type: string
           description: TMDB TV show ID.
       responses:
-        "200":
+        '200':
           description: TV show details
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TvDetails"
+                $ref: '#/components/schemas/TvDetails'
 components:
   schemas:
     TvSearchResult:

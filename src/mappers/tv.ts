@@ -1,19 +1,53 @@
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+
+export const TV_SUMMARY_FIELDS = ['id', 'name', 'poster_path', 'backdrop_path'] as const;
+
+export const TV_DETAIL_FIELDS = [
+  'name',
+  'original_name',
+  'overview',
+  'tagline',
+  'first_air_date',
+  'last_air_date',
+  'status',
+  'type',
+  'adult',
+  'genre_ids',
+  'genres',
+  'original_language',
+  'spoken_languages',
+  'origin_country',
+  'number_of_episodes',
+  'number_of_seasons',
+  'seasons',
+  'episode_run_time',
+  'last_episode_to_air',
+  'next_episode_to_air',
+  'networks',
+  'production_companies',
+  'production_countries',
+  'created_by',
+] as const;
 
 function buildPosterUrl(path: string | null): string | null {
   return path ? `${TMDB_IMAGE_BASE}${path}` : null;
 }
 
-// Minimal type for TMDB search results
-interface TmdbSearchTv {
+export interface TmdbTvResponse {
+  results: TmdbSearchTv[];
+  page: number;
+  total_pages: number;
+  total_results: number;
+}
+
+export interface TmdbSearchTv {
   id: number;
   name: string;
   poster_path: string | null;
   first_air_date?: string | null;
 }
 
-// Minimal type for TMDB detailed TV response
-interface TmdbTvDetails extends TmdbSearchTv {
+export interface TmdbTvDetails extends TmdbSearchTv {
   overview?: string | null;
   genres?: { id: number; name: string }[];
   status?: string;

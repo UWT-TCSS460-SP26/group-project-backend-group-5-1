@@ -6,10 +6,6 @@ import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
 
 const app = express();
-import tvRoutes from "./routes/tvRoutes";
-
-app.use("/tv", tvRoutes);
-
 
 // Application-level middleware
 app.use(cors());
