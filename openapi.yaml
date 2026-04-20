@@ -100,22 +100,6 @@ paths:
           schema:
             type: string
           example: '28,878'
-        - name: vote_average_gte
-          in: query
-          description: Filter by minimum vote average. Only applies when `query` is not provided.
-          required: false
-          schema:
-            type: number
-            format: float
-          example: 7.0
-        - name: vote_average_lte
-          in: query
-          description: Filter by maximum vote average. Only applies when `query` is not provided.
-          required: false
-          schema:
-            type: number
-            format: float
-          example: 9.0
         - name: with_runtime_gte
           in: query
           description: Filter by minimum runtime in minutes. Only applies when `query` is not provided.

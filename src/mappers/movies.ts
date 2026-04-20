@@ -28,8 +28,6 @@ interface MovieQueryParams {
   primary_release_date_gte?: string | ParsedQs;
   primary_release_date_lte?: string | ParsedQs;
   with_genres?: string | ParsedQs;
-  vote_average_gte?: string | ParsedQs;
-  vote_average_lte?: string | ParsedQs;
   with_runtime_gte?: string | ParsedQs;
   with_runtime_lte?: string | ParsedQs;
   language?: string | ParsedQs;
