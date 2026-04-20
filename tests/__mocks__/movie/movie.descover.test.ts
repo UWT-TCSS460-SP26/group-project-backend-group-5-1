@@ -1,9 +1,9 @@
 import request from 'supertest';
 import { app } from '../../../src/app';
- 
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
- 
+
 const mockDiscoverMoviesResponse = {
   page: 1,
   results: [
@@ -27,13 +27,13 @@ const mockDiscoverMoviesResponse = {
   total_pages: 38020,
   total_results: 760385,
 };
- 
+
 beforeEach(() => {
   mockFetch.mockReset();
   process.env.TMDB_API_KEY = 'test-api-key';
   process.env.TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 });
- 
+
 describe('Movie Routes', () => {
   describe('GET /v1/movies', () => {
     it('returns 200 on success', async () => {
@@ -45,7 +45,7 @@ describe('Movie Routes', () => {
       const res = await request(app).get('/v1/movies?with_genres=28');
       expect(res.status).toBe(200);
     });
- 
+
     it('returns 500 on fetch error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
       const res = await request(app).get('/v1/movies?with_genres=28');
@@ -53,4 +53,3 @@ describe('Movie Routes', () => {
     });
   });
 });
- 

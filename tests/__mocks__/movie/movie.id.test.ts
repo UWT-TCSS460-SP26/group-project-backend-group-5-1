@@ -1,9 +1,9 @@
 import request from 'supertest';
 import { app } from '../../../src/app';
- 
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
- 
+
 const mockMovieResponse = {
   adult: false,
   backdrop_path: '/2w4xG178RpB4MDAIfTkqAuSJzec.jpg',
@@ -24,13 +24,13 @@ const mockMovieResponse = {
   spoken_languages: [{ english_name: 'English', iso_639_1: 'en', name: 'English' }],
   title: 'Star Wars',
 };
- 
+
 beforeEach(() => {
   mockFetch.mockReset();
   process.env.TMDB_API_KEY = 'test-api-key';
   process.env.TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 });
- 
+
 describe('Movie Routes', () => {
   describe('GET /v1/movies/:id', () => {
     it('returns 200 on success', async () => {
@@ -42,7 +42,7 @@ describe('Movie Routes', () => {
       const res = await request(app).get('/v1/movies/11');
       expect(res.status).toBe(200);
     });
- 
+
     it('returns 404 when movie not found', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
@@ -52,7 +52,7 @@ describe('Movie Routes', () => {
       const res = await request(app).get('/v1/movies/999999');
       expect(res.status).toBe(404);
     });
- 
+
     it('returns 500 on fetch error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
       const res = await request(app).get('/v1/movies/11');

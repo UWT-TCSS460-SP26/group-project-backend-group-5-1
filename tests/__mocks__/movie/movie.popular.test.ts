@@ -1,10 +1,9 @@
-
 import request from 'supertest';
 import { app } from '../../../src/app';
- 
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
- 
+
 const mockPopularMoviesResponse = {
   page: 1,
   results: [
@@ -25,13 +24,13 @@ const mockPopularMoviesResponse = {
   total_pages: 38029,
   total_results: 760569,
 };
- 
+
 beforeEach(() => {
   mockFetch.mockReset();
   process.env.TMDB_API_KEY = 'test-api-key';
   process.env.TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 });
- 
+
 describe('Movie Routes', () => {
   describe('GET /v1/movies/popular', () => {
     it('returns 200 on success', async () => {
@@ -43,7 +42,7 @@ describe('Movie Routes', () => {
       const res = await request(app).get('/v1/movies/popular');
       expect(res.status).toBe(200);
     });
- 
+
     it('returns 500 on fetch error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
       const res = await request(app).get('/v1/movies/popular');
