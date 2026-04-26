@@ -53,6 +53,15 @@ describe('POST /v1/ratings', () => {
     expect(response.status).toBe(401);
   });
 
+  it('returns 401 with invalid token', async () => {
+    const response = await request(app)
+      .post('/v1/ratings')
+      .set({ Authorization: 'Bearer not.a.valid.token' })
+      .send({ tmdbId: 120, rating: 8 });
+
+    expect(response.status).toBe(401);
+  });
+
   it('returns 400 when tmdbId is missing', async () => {
     const response = await request(app).post('/v1/ratings').set(asUser).send({ rating: 8 });
 
@@ -137,6 +146,12 @@ describe('PATCH /v1/ratings/:id', () => {
     expect(response.status).toBe(200);
   });
 
+  it('returns 401 when token is missing', async () => {
+    const response = await request(app).patch('/v1/ratings/1').send({ rating: 9 });
+
+    expect(response.status).toBe(401);
+  });
+
   it('non-owner gets 403', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
@@ -196,6 +211,12 @@ describe('DELETE /v1/ratings/:id', () => {
         where: expect.objectContaining({ id: 1 }),
       })
     );
+  });
+
+  it('returns 401 when token is missing', async () => {
+    const response = await request(app).delete('/v1/ratings/1');
+
+    expect(response.status).toBe(401);
   });
 
   it('non-owner gets 403', async () => {
