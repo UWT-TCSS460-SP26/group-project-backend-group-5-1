@@ -21,6 +21,9 @@
     "lint:fix": "eslint --fix .",
     "all": "prettier --write . && eslint --fix . && jest --passWithNoTests"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
