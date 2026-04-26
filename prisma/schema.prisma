@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ratings Rating[]
+  reviews Review[]
+}
+
+model Rating {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  mediaType   String   // "movie" | "tv"
+  mediaId     Int      // external ID (e.g. TMDB)
+  score       Int      // e.g. 1–10
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review      Review?
+
+  @@unique([userId, mediaType, mediaId])
+  @@index([mediaType, mediaId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  ratingId  Int      @unique
+  mediaType String   // "movie" | "tv"
+  mediaId   Int      // external ID (e.g. TMDB)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Rating   @relation(fields: [ratingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaType, mediaId])
+  @@index([mediaType, mediaId])
+}
