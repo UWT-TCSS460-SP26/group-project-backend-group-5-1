@@ -21,6 +21,9 @@
     "lint:fix": "eslint --fix .",
     "all": "prettier --write . && eslint --fix . && jest --passWithNoTests"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@scalar/express-api-reference": "^0.9.0",
     "axios": "^1.15.0",
