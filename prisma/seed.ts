@@ -18,7 +18,7 @@ async function main() {
       role: 'admin',
     },
   });
-  console.log('Admin user seeded.')
+  console.log('Admin user seeded.');
 }
 
 main()
