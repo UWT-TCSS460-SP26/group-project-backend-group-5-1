@@ -479,13 +479,13 @@ paths:
                   maximum: 10
                   example: 8
       responses:
-        "201":
+        '201':
           description: Rating created or updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Rating"
-        "401":
+                $ref: '#/components/schemas/Rating'
+        '401':
           description: Unauthorized
 
   /api/v1/ratings/{id}:
@@ -513,15 +513,15 @@ paths:
                   type: integer
                   example: 9
       responses:
-        "200":
+        '200':
           description: Rating updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Rating"
-        "403":
+                $ref: '#/components/schemas/Rating'
+        '403':
           description: Forbidden
-        "404":
+        '404':
           description: Rating not found
 
     delete:
@@ -536,11 +536,11 @@ paths:
           schema:
             type: integer
       responses:
-        "204":
+        '204':
           description: Rating deleted
-        "403":
+        '403':
           description: Forbidden
-        "404":
+        '404':
           description: Rating not found
 
   /api/v1/ratings/{tmdbId}:
@@ -554,14 +554,14 @@ paths:
           schema:
             type: integer
       responses:
-        "200":
+        '200':
           description: List of ratings
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Rating"
+                  $ref: '#/components/schemas/Rating'
 
   /api/v1/reviews:
     post:
@@ -589,18 +589,18 @@ paths:
                   enum: [movie, tv]
                 body:
                   type: string
-                  example: "This movie was incredible!"
+                  example: 'This movie was incredible!'
                 ratingId:
                   type: integer
                   example: 12
       responses:
-        "201":
+        '201':
           description: Review created or updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Review"
-        "401":
+                $ref: '#/components/schemas/Review'
+        '401':
           description: Unauthorized
 
   /api/v1/reviews/{id}:
@@ -626,17 +626,17 @@ paths:
               properties:
                 body:
                   type: string
-                  example: "Updated review text."
+                  example: 'Updated review text.'
       responses:
-        "200":
+        '200':
           description: Review updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Review"
-        "403":
+                $ref: '#/components/schemas/Review'
+        '403':
           description: Forbidden
-        "404":
+        '404':
           description: Review not found
 
     delete:
@@ -651,11 +651,11 @@ paths:
           schema:
             type: integer
       responses:
-        "204":
+        '204':
           description: Review deleted
-        "403":
+        '403':
           description: Forbidden
-        "404":
+        '404':
           description: Review not found
 
   /api/v1/reviews/{tmdbId}:
@@ -669,14 +669,14 @@ paths:
           schema:
             type: integer
       responses:
-        "200":
+        '200':
           description: List of reviews
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Review"
+                  $ref: '#/components/schemas/Review'
 
 components:
   securitySchemes:

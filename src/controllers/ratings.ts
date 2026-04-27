@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { prisma } from "../lib/prisma";
+import { Request, Response } from 'express';
+import { prisma } from '../lib/prisma';
 
 function getUserId(req: Request): number {
   return (req as unknown as { user: { sub: number } }).user.sub;
@@ -10,7 +10,7 @@ function parseId(raw: string): number | null {
   return isNaN(n) || !Number.isInteger(n) ? null : n;
 }
 
-const VALID_MEDIA_TYPES = ["movie", "tv", "book"] as const;
+const VALID_MEDIA_TYPES = ['movie', 'tv', 'book'] as const;
 type MediaType = (typeof VALID_MEDIA_TYPES)[number];
 
 function isValidMediaType(value: string): value is MediaType {
@@ -24,15 +24,17 @@ export async function createRating(req: Request, res: Response) {
     const userId = getUserId(req);
 
     if (!mediaId || !mediaType || score === undefined) {
-      return res.status(400).json({ error: "mediaId, mediaType, and score are required" });
+      return res.status(400).json({ error: 'mediaId, mediaType, and score are required' });
     }
 
     if (!isValidMediaType(mediaType)) {
-      return res.status(400).json({ error: `mediaType must be one of: ${VALID_MEDIA_TYPES.join(", ")}` });
+      return res
+        .status(400)
+        .json({ error: `mediaType must be one of: ${VALID_MEDIA_TYPES.join(', ')}` });
     }
 
-    if (typeof score !== "number" || score < 1 || score > 10) {
-      return res.status(400).json({ error: "score must be a number between 1 and 10" });
+    if (typeof score !== 'number' || score < 1 || score > 10) {
+      return res.status(400).json({ error: 'score must be a number between 1 and 10' });
     }
 
     const existing = await prisma.rating.findFirst({
@@ -40,7 +42,9 @@ export async function createRating(req: Request, res: Response) {
     });
 
     if (existing) {
-      return res.status(409).json({ error: "You have already rated this item. Use PUT to update your rating." });
+      return res
+        .status(409)
+        .json({ error: 'You have already rated this item. Use PUT to update your rating.' });
     }
 
     const created = await prisma.rating.create({
@@ -48,8 +52,8 @@ export async function createRating(req: Request, res: Response) {
     });
     return res.status(201).json(created);
   } catch (err) {
-    console.error("[createRating]", err);
-    return res.status(500).json({ error: "Failed to create rating" });
+    console.error('[createRating]', err);
+    return res.status(500).json({ error: 'Failed to create rating' });
   }
 }
 
@@ -57,19 +61,19 @@ export async function createRating(req: Request, res: Response) {
 export async function getRatingById(req: Request, res: Response) {
   try {
     const id = parseId(req.params.id as string);
-    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
     const rating = await prisma.rating.findUnique({
       where: { id },
       include: { user: { select: { id: true, email: true } } },
     });
 
-    if (!rating) return res.status(404).json({ error: "Rating not found" });
+    if (!rating) return res.status(404).json({ error: 'Rating not found' });
 
     return res.json(rating);
   } catch (err) {
-    console.error("[getRatingById]", err);
-    return res.status(500).json({ error: "Failed to fetch rating" });
+    console.error('[getRatingById]', err);
+    return res.status(500).json({ error: 'Failed to fetch rating' });
   }
 }
 
@@ -80,10 +84,12 @@ export async function getRatingsForItem(req: Request, res: Response) {
     const mediaType = req.params.mediaType as string;
 
     const mediaIdNum = parseId(mediaId);
-    if (mediaIdNum === null) return res.status(400).json({ error: "Invalid mediaId" });
+    if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
 
     if (!isValidMediaType(mediaType)) {
-      return res.status(400).json({ error: `mediaType must be one of: ${VALID_MEDIA_TYPES.join(", ")}` });
+      return res
+        .status(400)
+        .json({ error: `mediaType must be one of: ${VALID_MEDIA_TYPES.join(', ')}` });
     }
 
     const ratings = await prisma.rating.findMany({
@@ -93,8 +99,8 @@ export async function getRatingsForItem(req: Request, res: Response) {
 
     return res.json(ratings);
   } catch (err) {
-    console.error("[getRatingsForItem]", err);
-    return res.status(500).json({ error: "Failed to fetch ratings" });
+    console.error('[getRatingsForItem]', err);
+    return res.status(500).json({ error: 'Failed to fetch ratings' });
   }
 }
 
@@ -102,24 +108,24 @@ export async function getRatingsForItem(req: Request, res: Response) {
 export async function updateRating(req: Request, res: Response) {
   try {
     const id = parseId(req.params.id as string);
-    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
     const { score } = req.body;
     const userId = getUserId(req);
 
-    if (typeof score !== "number" || score < 1 || score > 10) {
-      return res.status(400).json({ error: "score must be a number between 1 and 10" });
+    if (typeof score !== 'number' || score < 1 || score > 10) {
+      return res.status(400).json({ error: 'score must be a number between 1 and 10' });
     }
 
     const existing = await prisma.rating.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: "Rating not found" });
-    if (existing.userId !== userId) return res.status(403).json({ error: "Not authorized" });
+    if (!existing) return res.status(404).json({ error: 'Rating not found' });
+    if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
     const updated = await prisma.rating.update({ where: { id }, data: { score } });
     return res.json(updated);
   } catch (err) {
-    console.error("[updateRating]", err);
-    return res.status(500).json({ error: "Failed to update rating" });
+    console.error('[updateRating]', err);
+    return res.status(500).json({ error: 'Failed to update rating' });
   }
 }
 
@@ -127,19 +133,19 @@ export async function updateRating(req: Request, res: Response) {
 export async function deleteRating(req: Request, res: Response) {
   try {
     const id = parseId(req.params.id as string);
-    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
     const userId = getUserId(req);
 
     const existing = await prisma.rating.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: "Rating not found" });
-    if (existing.userId !== userId) return res.status(403).json({ error: "Not authorized" });
+    if (!existing) return res.status(404).json({ error: 'Rating not found' });
+    if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
     await prisma.rating.delete({ where: { id } });
     return res.status(204).send();
   } catch (err) {
-    console.error("[deleteRating]", err);
-    return res.status(500).json({ error: "Failed to delete rating" });
+    console.error('[deleteRating]', err);
+    return res.status(500).json({ error: 'Failed to delete rating' });
   }
 }
 

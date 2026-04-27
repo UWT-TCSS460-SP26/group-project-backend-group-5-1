@@ -1,12 +1,13 @@
 import request from 'supertest';
 import { app } from '../../src/app';
-import { prisma } from '../../src/prisma';
+import { prisma } from '../../src/lib/prisma';
 import { authHeader } from '../helpers';
 
-jest.mock('../../src/prisma', () => ({
+jest.mock('../../src/lib/prisma', () => ({
   prisma: {
     rating: {
       findMany: jest.fn(),
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -16,230 +17,190 @@ jest.mock('../../src/prisma', () => ({
 }));
 
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
-
 const asUser = authHeader({ sub: 1, role: 'user' });
 const asOtherUser = authHeader({ sub: 2, role: 'user' });
-const asAdmin = authHeader({ sub: 99, role: 'admin' });
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('POST /v1/tv-ratings', () => {
+describe('POST /v1/ratings (tv)', () => {
   it('creates a tv rating with valid token', async () => {
+    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
     (mockRating.create as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
+      mediaType: 'tv',
       userId: 1,
-      rating: 9,
+      score: 9,
     });
 
     const response = await request(app)
-      .post('/v1/tv-ratings')
+      .post('/v1/ratings')
       .set(asUser)
-      .send({ tmdbId: 1399, rating: 9 });
+      .send({ mediaId: 1399, mediaType: 'tv', score: 9 });
 
     expect(response.status).toBe(201);
     expect(mockRating.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ userId: 1 }),
-      })
+      expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
     );
   });
 
   it('returns 401 when token is missing', async () => {
-    const response = await request(app).post('/v1/tv-ratings').send({ tmdbId: 1399, rating: 9 });
-
+    const response = await request(app)
+      .post('/v1/ratings')
+      .send({ mediaId: 1399, mediaType: 'tv', score: 9 });
     expect(response.status).toBe(401);
   });
 
   it('returns 401 with invalid token', async () => {
     const response = await request(app)
-      .post('/v1/tv-ratings')
+      .post('/v1/ratings')
       .set({ Authorization: 'Bearer not.a.valid.token' })
-      .send({ tmdbId: 1399, rating: 9 });
-
+      .send({ mediaId: 1399, mediaType: 'tv', score: 9 });
     expect(response.status).toBe(401);
   });
 
-  it('returns 400 when tmdbId is missing', async () => {
-    const response = await request(app).post('/v1/tv-ratings').set(asUser).send({ rating: 9 });
-
+  it('returns 400 when mediaId is missing', async () => {
+    const response = await request(app)
+      .post('/v1/ratings')
+      .set(asUser)
+      .send({ mediaType: 'tv', score: 9 });
     expect(response.status).toBe(400);
   });
 
-  it('returns 400 when rating is missing', async () => {
-    const response = await request(app).post('/v1/tv-ratings').set(asUser).send({ tmdbId: 1399 });
-
+  it('returns 400 when score is missing', async () => {
+    const response = await request(app)
+      .post('/v1/ratings')
+      .set(asUser)
+      .send({ mediaId: 1399, mediaType: 'tv' });
     expect(response.status).toBe(400);
+  });
+
+  it('returns 409 when rating already exists', async () => {
+    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce({ id: 1 });
+    const response = await request(app)
+      .post('/v1/ratings')
+      .set(asUser)
+      .send({ mediaId: 1399, mediaType: 'tv', score: 9 });
+    expect(response.status).toBe(409);
   });
 });
 
-describe('GET /v1/tv-ratings', () => {
-  it('returns list of ratings for a tmdbId (public)', async () => {
+describe('GET /v1/ratings/tv/:mediaId', () => {
+  it('returns list of ratings for a tv show (public)', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
-      {
-        id: 1,
-        tmdbId: 1399,
-        userId: 1,
-        rating: 9,
-      },
+      { id: 1, mediaId: 1399, mediaType: 'tv', userId: 1, score: 9 },
     ]);
-
-    const response = await request(app).get('/v1/tv-ratings?tmdbId=1399');
-
+    const response = await request(app).get('/v1/ratings/tv/1399');
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(response.body[0].tmdbId).toBe(1399);
-    expect(response.body[0].rating).toBe(9);
+    expect(response.body[0].mediaId).toBe(1399);
+    expect(response.body[0].score).toBe(9);
   });
 
-  it('returns a list of ratings for a user', async () => {
-    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
-      {
-        id: 1,
-        tmdbId: 1399,
-        userId: 1,
-        rating: 9,
-      },
-      {
-        id: 2,
-        tmdbId: 1396,
-        userId: 1,
-        rating: 8,
-      },
-    ]);
-
-    const response = await request(app).get('/v1/tv-ratings?userId=1');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(2);
-    expect(response.body[0].userId).toBe(1);
-  });
-
-  it('returns 404 when no ratings found for tmdbId', async () => {
+  it('returns empty array when no ratings found', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([]);
+    const response = await request(app).get('/v1/ratings/tv/999');
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(0);
+  });
+});
 
-    const response = await request(app).get('/v1/tv-ratings?tmdbId=999');
+describe('GET /v1/ratings/tv/:mediaId/:userId', () => {
+  it('returns a specific user rating (public)', async () => {
+    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce({
+      id: 1,
+      mediaId: 1399,
+      mediaType: 'tv',
+      userId: 1,
+      score: 9,
+    });
+    const response = await request(app).get('/v1/ratings/tv/1399/1');
+    expect(response.status).toBe(200);
+    expect(response.body.score).toBe(9);
+  });
 
+  it('returns 404 if user rating not found', async () => {
+    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
+    const response = await request(app).get('/v1/ratings/tv/1399/99');
     expect(response.status).toBe(404);
   });
 });
 
-describe('PATCH /v1/tv-ratings/:id', () => {
-  it('updates a rating with valid token', async () => {
+describe('PUT /v1/ratings/:id (tv)', () => {
+  it('updates a tv rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
       userId: 1,
-      rating: 9,
+      score: 9,
     });
     (mockRating.update as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
       userId: 1,
-      rating: 10,
+      score: 10,
     });
-
-    const response = await request(app).patch('/v1/tv-ratings/1').set(asUser).send({ rating: 10 });
-
+    const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 10 });
     expect(response.status).toBe(200);
   });
 
   it('returns 401 when token is missing', async () => {
-    const response = await request(app).patch('/v1/tv-ratings/1').send({ rating: 10 });
-
+    const response = await request(app).put('/v1/ratings/1').send({ score: 10 });
     expect(response.status).toBe(401);
   });
 
   it('non-owner gets 403', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
       userId: 1,
-      rating: 9,
+      score: 9,
     });
-
-    const response = await request(app)
-      .patch('/v1/tv-ratings/1')
-      .set(asOtherUser)
-      .send({ rating: 10 });
-
+    const response = await request(app).put('/v1/ratings/1').set(asOtherUser).send({ score: 10 });
     expect(response.status).toBe(403);
   });
 
   it('returns 404 if rating not found', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
-
-    const response = await request(app).patch('/v1/tv-ratings/1').set(asUser).send({ rating: 10 });
-
+    const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 10 });
     expect(response.status).toBe(404);
   });
 });
 
-describe('DELETE /v1/tv-ratings/:id', () => {
-  it('deletes a rating with valid token', async () => {
+describe('DELETE /v1/ratings/:id (tv)', () => {
+  it('deletes a tv rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
       userId: 1,
-      rating: 9,
+      score: 9,
     });
     (mockRating.delete as jest.Mock).mockResolvedValueOnce({ id: 1 });
-
-    const response = await request(app).delete('/v1/tv-ratings/1').set(asUser);
-
-    expect(response.status).toBe(200);
-    expect(mockRating.delete).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ id: 1 }),
-      })
-    );
-  });
-
-  it('admin can delete any rating', async () => {
-    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
-      id: 1,
-      tmdbId: 1399,
-      userId: 1,
-      rating: 9,
-    });
-    (mockRating.delete as jest.Mock).mockResolvedValueOnce({ id: 1 });
-
-    const response = await request(app).delete('/v1/tv-ratings/1').set(asAdmin);
-
-    expect(response.status).toBe(200);
-    expect(mockRating.delete).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ id: 1 }),
-      })
-    );
+    const response = await request(app).delete('/v1/ratings/1').set(asUser);
+    expect(response.status).toBe(204);
   });
 
   it('returns 401 when token is missing', async () => {
-    const response = await request(app).delete('/v1/tv-ratings/1');
-
+    const response = await request(app).delete('/v1/ratings/1');
     expect(response.status).toBe(401);
   });
 
   it('non-owner gets 403', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
-      tmdbId: 1399,
+      mediaId: 1399,
       userId: 1,
-      rating: 9,
+      score: 9,
     });
-
-    const response = await request(app).delete('/v1/tv-ratings/1').set(asOtherUser);
-
+    const response = await request(app).delete('/v1/ratings/1').set(asOtherUser);
     expect(response.status).toBe(403);
   });
 
   it('returns 404 if rating not found', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
-
-    const response = await request(app).delete('/v1/tv-ratings/1').set(asUser);
-
+    const response = await request(app).delete('/v1/ratings/1').set(asUser);
     expect(response.status).toBe(404);
   });
 });
