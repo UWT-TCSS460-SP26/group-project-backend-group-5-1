@@ -19,27 +19,27 @@ model User {
 }
 
 model Rating {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  mediaType   String   // "movie" | "tv"
-  mediaId     Int      // external ID (e.g. TMDB)
-  score       Int      // e.g. 1–10
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tmdbId    Int
+  mediaType String
+  score     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  review      Review?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review    Review?
 
-  @@unique([userId, mediaType, mediaId])
-  @@index([mediaType, mediaId])
+  @@unique([userId, tmdbId])
+  @@index([tmdbId])
 }
 
 model Review {
   id        Int      @id @default(autoincrement())
   userId    Int
+  tmdbId    Int
   ratingId  Int      @unique
-  mediaType String   // "movie" | "tv"
-  mediaId   Int      // external ID (e.g. TMDB)
+  mediaType String
   body      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,6 +47,6 @@ model Review {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating    Rating   @relation(fields: [ratingId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, mediaType, mediaId])
-  @@index([mediaType, mediaId])
+  @@unique([userId, tmdbId])
+  @@index([tmdbId])
 }

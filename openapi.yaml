@@ -449,7 +449,242 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/v1/ratings:
+    post:
+      summary: Create or update a rating
+      description: Creates a new rating for a TMDB item or updates the existing rating for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tmdbId
+                - mediaType
+                - score
+              properties:
+                tmdbId:
+                  type: integer
+                  example: 550
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                  example: movie
+                score:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 8
+      responses:
+        "201":
+          description: Rating created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rating"
+        "401":
+          description: Unauthorized
+
+  /api/v1/ratings/{id}:
+    put:
+      summary: Update a rating
+      description: Updates the score of an existing rating belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - score
+              properties:
+                score:
+                  type: integer
+                  example: 9
+      responses:
+        "200":
+          description: Rating updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rating"
+        "403":
+          description: Forbidden
+        "404":
+          description: Rating not found
+
+    delete:
+      summary: Delete a rating
+      description: Deletes a rating belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Rating deleted
+        "403":
+          description: Forbidden
+        "404":
+          description: Rating not found
+
+  /api/v1/ratings/{tmdbId}:
+    get:
+      summary: Get all ratings for a TMDB item
+      description: Returns all ratings for a given TMDB ID.
+      parameters:
+        - in: path
+          name: tmdbId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+
+  /api/v1/reviews:
+    post:
+      summary: Create or update a review
+      description: Creates a new review or updates an existing review for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tmdbId
+                - mediaType
+                - body
+                - ratingId
+              properties:
+                tmdbId:
+                  type: integer
+                  example: 550
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                body:
+                  type: string
+                  example: "This movie was incredible!"
+                ratingId:
+                  type: integer
+                  example: 12
+      responses:
+        "201":
+          description: Review created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "401":
+          description: Unauthorized
+
+  /api/v1/reviews/{id}:
+    put:
+      summary: Update a review
+      description: Updates the body of an existing review belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  example: "Updated review text."
+      responses:
+        "200":
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "403":
+          description: Forbidden
+        "404":
+          description: Review not found
+
+    delete:
+      summary: Delete a review
+      description: Deletes a review belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Review deleted
+        "403":
+          description: Forbidden
+        "404":
+          description: Review not found
+
+  /api/v1/reviews/{tmdbId}:
+    get:
+      summary: Get all reviews for a TMDB item
+      description: Returns all reviews for a given TMDB ID.
+      parameters:
+        - in: path
+          name: tmdbId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     MovieSummary:
       type: object
@@ -774,6 +1009,62 @@ components:
               profile_path:
                 type: string
                 nullable: true
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        tmdbId:
+          type: integer
+        mediaType:
+          type: string
+        score:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        tmdbId:
+          type: integer
+        ratingId:
+          type: integer
+        mediaType:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
 
     Error:
       type: object
