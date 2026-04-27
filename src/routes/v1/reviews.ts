@@ -3,18 +3,21 @@ import {
   createReview,
   updateReview,
   deleteReview,
-  getReviewsForItem
+  getReviewsForItem,
+  getReviewByUser
 } from "../../controllers/reviews";
 import { requireAuth } from "../../middleware/requireAuth";
 
-const router = Router();
+const reviewsRouter = Router();
+
+// Public routes
+reviewsRouter.get('/:mediaType/:mediaId', getReviewsForItem);
+
+reviewsRouter.get('/:mediaType/:mediaId/:userId', getReviewByUser);
 
 // Authenticated routes
-router.post("/", requireAuth, createReview);
-router.put("/:id", requireAuth, updateReview);
-router.delete("/:id", requireAuth, deleteReview);
+reviewsRouter.post("/", requireAuth, createReview);
+reviewsRouter.put("/:id", requireAuth, updateReview);
+reviewsRouter.delete("/:id", requireAuth, deleteReview);
 
-// Public route
-router.get("/:tmdbId", getReviewsForItem);
-
-export default router;
+export { reviewsRouter };

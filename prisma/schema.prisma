@@ -21,8 +21,8 @@ model User {
 model Rating {
   id        Int      @id @default(autoincrement())
   userId    Int
-  tmdbId    Int
   mediaType String
+  mediaId   Int
   score     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -30,16 +30,16 @@ model Rating {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   review    Review?
 
-  @@unique([userId, tmdbId])
-  @@index([tmdbId])
+  @@unique([userId, mediaId])
+  @@index([mediaId])
 }
 
 model Review {
   id        Int      @id @default(autoincrement())
   userId    Int
-  tmdbId    Int
   ratingId  Int      @unique
   mediaType String
+  mediaId   Int
   body      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,6 +47,6 @@ model Review {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating    Rating   @relation(fields: [ratingId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, tmdbId])
-  @@index([tmdbId])
+  @@unique([userId, mediaId])
+  @@index([mediaId])
 }
