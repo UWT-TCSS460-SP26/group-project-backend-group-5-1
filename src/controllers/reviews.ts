@@ -3,41 +3,51 @@ import { prisma } from "../lib/prisma";
 
 // Extract userId safely without using "any"
 function getUserId(req: Request): number {
-  return (req as unknown as { user: { id: number } }).user.id;
+  return (req as unknown as { user: { sub: number } }).user.sub;
 }
 
-// CREATE or UPDATE review
 export async function createReview(req: Request, res: Response) {
   try {
-    const { tmdbId, mediaType, body, ratingId } = req.body;
+    const { mediaId, mediaType, body, ratingId } = req.body;
     const userId = getUserId(req);
 
-    // Check if review already exists for this user + rating
-    const existing = await prisma.review.findFirst({
-      where: { userId, ratingId }
-    });
-
-    let review;
-
-    if (existing) {
-      review = await prisma.review.update({
-        where: { id: existing.id },
-        data: { body }
-      });
-    } else {
-      review = await prisma.review.create({
-        data: {
-          userId,
-          tmdbId,
-          mediaType,
-          body,
-          ratingId
-        }
-      });
+    if (!mediaId || !mediaType || !body || !ratingId) {
+      return res.status(400).json({ error: "mediaId, mediaType, body, and ratingId are required" });
     }
 
+    const rating = await prisma.rating.findUnique({
+      where: { id: Number(ratingId) }
+    });
+
+    if (!rating) {
+      return res.status(404).json({ error: "Rating not found. You must create a rating before writing a review." });
+    }
+
+    if (rating.userId !== userId) {
+      return res.status(403).json({ error: "You can only review your own ratings." });
+    }
+
+    const existing = await prisma.review.findFirst({
+      where: { userId, ratingId: Number(ratingId) }
+    });
+
+    if (existing) {
+      return res.status(409).json({ error: "You have already reviewed this item. Use PUT to update your review." });
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        userId,
+        mediaType,
+        mediaId: Number(mediaId),
+        body,
+        ratingId: Number(ratingId)
+      }
+    });
+
     return res.status(201).json(review);
-  } catch {
+  } catch (err) {
+    console.log(err);
     return res.status(500).json({ error: "Failed to create review" });
   }
 }
@@ -100,13 +110,17 @@ export async function deleteReview(req: Request, res: Response) {
   }
 }
 
-// PUBLIC GET reviews for a media item
+// PULBLIC GET reviews for a media item
 export async function getReviewsForItem(req: Request, res: Response) {
   try {
-    const { tmdbId } = req.params;
+    const mediaType = req.params.mediaType as string;
+    const mediaId = req.params.mediaId as string;
 
     const reviews = await prisma.review.findMany({
-      where: { tmdbId: Number(tmdbId) },
+      where: {
+        mediaId: Number(mediaId),
+        mediaType,
+      },
       include: {
         user: { select: { id: true, email: true } }
       }
@@ -115,5 +129,33 @@ export async function getReviewsForItem(req: Request, res: Response) {
     return res.json(reviews);
   } catch {
     return res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+}
+
+// PUBLIC GET a specific user's review for a media item
+export async function getReviewByUser(req: Request, res: Response) {
+  try {
+    const mediaType = req.params.mediaType as string;
+    const mediaId = req.params.mediaId as string;
+    const userId = req.params.userId as string;
+
+    const review = await prisma.review.findFirst({
+      where: {
+        userId: Number(userId),
+        mediaType,
+        mediaId: Number(mediaId),
+      },
+      include: {
+        user: { select: { id: true, email: true } }
+      }
+    });
+
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    return res.json(review);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch review" });
   }
 }

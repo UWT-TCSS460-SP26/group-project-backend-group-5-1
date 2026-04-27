@@ -1,20 +1,16 @@
-import { Router } from "express";
-import {
-  createRating,
-  updateRating,
-  deleteRating,
-  getRatingsForItem
-} from "../../controllers/ratings";
-import { requireAuth } from "../../middleware/requireAuth";
+import { Router } from 'express';
+import { createRating, getRatingByUser, getRatingsForItem, updateRating, deleteRating } from '../../controllers/ratings';
+import { requireAuth } from '../../middleware/requireAuth';
 
-const router = Router();
+const ratingsRouter = Router();
 
-// Authenticated routes
-router.post("/", requireAuth, createRating);
-router.put("/:id", requireAuth, updateRating);
-router.delete("/:id", requireAuth, deleteRating);
+// PUBLIC - get all ratings for a specific media item
+ratingsRouter.get('/:mediaType/:mediaId', getRatingsForItem);
+ratingsRouter.get('/:mediaType/:mediaId/:userId', getRatingByUser);
 
-// Public route
-router.get("/:tmdbId", getRatingsForItem);
+// PROTECTED - create, update, delete
+ratingsRouter.post('/', requireAuth, createRating);
+ratingsRouter.put('/:id', requireAuth, updateRating);
+ratingsRouter.delete('/:id', requireAuth, deleteRating);
 
-export default router;
+export { ratingsRouter };
