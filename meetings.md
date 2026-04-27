@@ -116,7 +116,6 @@ name
 Title
 
 Week 4 Meeting
-
 - debugged JWT auth and checked that the post route for dev-login is working
 - removed duplicate mounted auth route
 - cleared up prisma confusion and fixed VS code errors for prisma features
