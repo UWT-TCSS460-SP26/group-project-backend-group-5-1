@@ -101,7 +101,7 @@ export async function deleteReview(req: Request, res: Response) {
     }
 
     if (existing.userId !== userId && req.user?.role !== 'admin') {
-      return res.status(403).json({ error: "Not authorized" });
+      return res.status(403).json({ error: 'Not authorized' });
     }
 
     await prisma.review.delete({
@@ -169,19 +169,19 @@ export async function deleteReviewAdmin(req: Request, res: Response) {
     const { id } = req.params;
 
     const existing = await prisma.review.findUnique({
-      where: { id: Number(id) }
+      where: { id: Number(id) },
     });
 
     if (!existing) {
-      return res.status(404).json({ error: "Review not found" });
+      return res.status(404).json({ error: 'Review not found' });
     }
 
     await prisma.review.delete({
-      where: { id: Number(id) }
+      where: { id: Number(id) },
     });
 
     return res.status(204).send();
   } catch {
-    return res.status(500).json({ error: "Failed to delete review" });
+    return res.status(500).json({ error: 'Failed to delete review' });
   }
 }

@@ -5,7 +5,7 @@ import {
   deleteReview,
   getReviewsForItem,
   getReviewByUser,
-  deleteReviewAdmin
+  deleteReviewAdmin,
 } from '../../controllers/reviews';
 import { requireAuth, requireRole } from '../../middleware/requireAuth';
 
@@ -22,6 +22,5 @@ reviewsRouter.delete('/:id', requireAuth, deleteReview);
 
 // Admin delete
 reviewsRouter.delete('/admin/:id', requireAuth, requireRole('admin'), deleteReviewAdmin);
-
 
 export { reviewsRouter };

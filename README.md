@@ -1,4 +1,5 @@
 # TCSS 460 — Group Project Backend
+
 Express + TypeScript API for the TCSS 460 group project.
 
 ## Quick Start
@@ -61,4 +62,5 @@ Copy `.env.example` to `.env` and fill in the following:
 | `npx prisma migrate reset` | Reset DB and reseed                 |
 
 ## Deployed URL
+
 https://tcss460-group-5-api.onrender.com
