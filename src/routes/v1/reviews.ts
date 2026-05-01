@@ -21,6 +21,6 @@ reviewsRouter.put('/:id', requireAuth, updateReview);
 reviewsRouter.delete('/:id', requireAuth, deleteReview);
 
 // Admin delete
-reviewsRouter.delete('/admin/:id', requireAuth, requireRole('admin'), deleteReviewAdmin);
+reviewsRouter.delete('/admin/:id', requireAuth, requireRole('Admin'), deleteReviewAdmin);
 
 export { reviewsRouter };

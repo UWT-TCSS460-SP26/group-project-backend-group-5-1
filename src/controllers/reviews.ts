@@ -100,7 +100,7 @@ export async function deleteReview(req: Request, res: Response) {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    if (existing.userId !== userId && req.user?.role !== 'admin') {
+    if (existing.userId !== userId && req.user?.role !== 'Admin') {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
