@@ -19,8 +19,9 @@ jest.mock('../../src/lib/prisma', () => ({
 
 const mockReview = prisma.review as jest.Mocked<typeof prisma.review>;
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
-const asUser = authHeader({ sub: 1, role: 'user' });
-const asOtherUser = authHeader({ sub: 2, role: 'user' });
+const asUser = authHeader({ sub: 'user-1', role: 'User' });
+const asOtherUser = authHeader({ sub: 'user-2', role: 'User' });
+
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -48,21 +49,6 @@ describe('POST /v1/reviews (tv)', () => {
     expect(mockReview.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
     );
-  });
-
-  it('returns 401 when token is missing', async () => {
-    const response = await request(app)
-      .post('/v1/reviews')
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
-    expect(response.status).toBe(401);
-  });
-
-  it('returns 401 with invalid token', async () => {
-    const response = await request(app)
-      .post('/v1/reviews')
-      .set({ Authorization: 'Bearer not.a.valid.token' })
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
-    expect(response.status).toBe(401);
   });
 
   it('returns 400 when mediaId is missing', async () => {

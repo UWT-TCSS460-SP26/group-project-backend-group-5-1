@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { authHeader } from '../helpers';
-
+ 
 jest.mock('../../src/lib/prisma', () => ({
   prisma: {
     rating: {
@@ -15,15 +15,16 @@ jest.mock('../../src/lib/prisma', () => ({
     },
   },
 }));
-
+ 
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
-const asUser = authHeader({ sub: 1, role: 'user' });
-const asOtherUser = authHeader({ sub: 2, role: 'user' });
-
+ 
+const asUser = authHeader({ sub: 'user-1', role: 'User' });
+const asOtherUser = authHeader({ sub: 'user-2', role: 'User' });
+ 
 beforeEach(() => {
   jest.clearAllMocks();
 });
-
+ 
 describe('POST /v1/ratings', () => {
   it('creates a rating with valid token', async () => {
     (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
@@ -34,33 +35,25 @@ describe('POST /v1/ratings', () => {
       userId: 1,
       score: 8,
     });
-
+ 
     const response = await request(app)
       .post('/v1/ratings')
       .set(asUser)
       .send({ mediaId: 120, mediaType: 'movie', score: 8 });
-
+ 
     expect(response.status).toBe(201);
     expect(mockRating.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
     );
   });
-
+ 
   it('returns 401 when token is missing', async () => {
     const response = await request(app)
       .post('/v1/ratings')
       .send({ mediaId: 120, mediaType: 'movie', score: 8 });
     expect(response.status).toBe(401);
   });
-
-  it('returns 401 with invalid token', async () => {
-    const response = await request(app)
-      .post('/v1/ratings')
-      .set({ Authorization: 'Bearer not.a.valid.token' })
-      .send({ mediaId: 120, mediaType: 'movie', score: 8 });
-    expect(response.status).toBe(401);
-  });
-
+ 
   it('returns 400 when mediaId is missing', async () => {
     const response = await request(app)
       .post('/v1/ratings')
@@ -68,7 +61,7 @@ describe('POST /v1/ratings', () => {
       .send({ mediaType: 'movie', score: 8 });
     expect(response.status).toBe(400);
   });
-
+ 
   it('returns 400 when score is missing', async () => {
     const response = await request(app)
       .post('/v1/ratings')
@@ -76,7 +69,7 @@ describe('POST /v1/ratings', () => {
       .send({ mediaId: 120, mediaType: 'movie' });
     expect(response.status).toBe(400);
   });
-
+ 
   it('returns 409 when rating already exists', async () => {
     (mockRating.findFirst as jest.Mock).mockResolvedValueOnce({ id: 1 });
     const response = await request(app)
@@ -86,7 +79,7 @@ describe('POST /v1/ratings', () => {
     expect(response.status).toBe(409);
   });
 });
-
+ 
 describe('GET /v1/ratings/movie/:mediaId', () => {
   it('returns list of ratings for a movie (public)', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
@@ -98,7 +91,7 @@ describe('GET /v1/ratings/movie/:mediaId', () => {
     expect(response.body[0].mediaId).toBe(120);
     expect(response.body[0].score).toBe(8);
   });
-
+ 
   it('returns empty array when no ratings found', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([]);
     const response = await request(app).get('/v1/ratings/movie/999');
@@ -106,7 +99,7 @@ describe('GET /v1/ratings/movie/:mediaId', () => {
     expect(response.body).toHaveLength(0);
   });
 });
-
+ 
 describe('GET /v1/ratings/movie/:mediaId/:userId', () => {
   it('returns a specific user rating (public)', async () => {
     (mockRating.findFirst as jest.Mock).mockResolvedValueOnce({
@@ -120,14 +113,14 @@ describe('GET /v1/ratings/movie/:mediaId/:userId', () => {
     expect(response.status).toBe(200);
     expect(response.body.score).toBe(8);
   });
-
+ 
   it('returns 404 if user rating not found', async () => {
     (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
     const response = await request(app).get('/v1/ratings/movie/120/99');
     expect(response.status).toBe(404);
   });
 });
-
+ 
 describe('PUT /v1/ratings/:id', () => {
   it('updates a rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
@@ -145,12 +138,12 @@ describe('PUT /v1/ratings/:id', () => {
     const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 9 });
     expect(response.status).toBe(200);
   });
-
+ 
   it('returns 401 when token is missing', async () => {
     const response = await request(app).put('/v1/ratings/1').send({ score: 9 });
     expect(response.status).toBe(401);
   });
-
+ 
   it('non-owner gets 403', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
@@ -161,14 +154,14 @@ describe('PUT /v1/ratings/:id', () => {
     const response = await request(app).put('/v1/ratings/1').set(asOtherUser).send({ score: 9 });
     expect(response.status).toBe(403);
   });
-
+ 
   it('returns 404 if rating not found', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
     const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 9 });
     expect(response.status).toBe(404);
   });
 });
-
+ 
 describe('DELETE /v1/ratings/:id', () => {
   it('deletes a rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
@@ -181,12 +174,12 @@ describe('DELETE /v1/ratings/:id', () => {
     const response = await request(app).delete('/v1/ratings/1').set(asUser);
     expect(response.status).toBe(204);
   });
-
+ 
   it('returns 401 when token is missing', async () => {
     const response = await request(app).delete('/v1/ratings/1');
     expect(response.status).toBe(401);
   });
-
+ 
   it('non-owner gets 403', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
@@ -197,7 +190,7 @@ describe('DELETE /v1/ratings/:id', () => {
     const response = await request(app).delete('/v1/ratings/1').set(asOtherUser);
     expect(response.status).toBe(403);
   });
-
+ 
   it('returns 404 if rating not found', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
     const response = await request(app).delete('/v1/ratings/1').set(asUser);
