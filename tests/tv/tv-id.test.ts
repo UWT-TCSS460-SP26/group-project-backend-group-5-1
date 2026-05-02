@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 import * as tvService from '../../src/services/tv';
+import { prisma } from '../../src/lib/prisma';
 
 jest.mock('../../src/services/tv', () => ({
   ...jest.requireActual('../../src/services/tv'),
@@ -8,6 +9,18 @@ jest.mock('../../src/services/tv', () => ({
   fetchTvPage: jest.fn(),
   parseTvQuery: jest.requireActual('../../src/services/tv').parseTvQuery,
   TMDB_PAGE_SIZE: 20,
+}));
+
+jest.mock('../../src/lib/prisma', () => ({
+  prisma: {
+    rating: {
+      aggregate: jest.fn(),
+    },
+    review: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
+  },
 }));
 
 const mockTvDetails = {
@@ -46,6 +59,19 @@ describe('GET /v1/tv/:id', () => {
 
   it('returns details when id is provided', async () => {
     (tvService.fetchTmdb as jest.Mock).mockResolvedValue(mockTvDetails);
+    (prisma.rating.aggregate as jest.Mock).mockResolvedValue({
+      _avg: { score: 9.0 },
+      _count: 20,
+    });
+    (prisma.review.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 2,
+        body: 'Amazing show!',
+        createdAt: new Date('2023-02-01'),
+        user: { username: 'user2' },
+      },
+    ]);
+    (prisma.review.count as jest.Mock).mockResolvedValue(8);
 
     const response = await request(app).get('/v1/tv/123');
     expect(response.status).toBe(200);
@@ -54,7 +80,15 @@ describe('GET /v1/tv/:id', () => {
     expect(response.body).toHaveProperty('first_air_date');
     expect(response.body).toHaveProperty('number_of_seasons');
     expect(response.body).toHaveProperty('networks');
-    expect(response.body.id).toBeUndefined(); // filtered out by trimByIdFields
+    expect(response.body).toHaveProperty('id', 123); // Now included since no trimming
+    expect(response.body).toHaveProperty('community_rating', 9.0);
+    expect(response.body).toHaveProperty('community_rating_count', 20);
+    expect(response.body).toHaveProperty('review_count', 8);
+    expect(response.body).toHaveProperty('recent_reviews');
+    expect(response.body.recent_reviews).toHaveLength(1);
+    expect(response.body.recent_reviews[0]).toHaveProperty('review_text', 'Amazing show!');
+    expect(response.body.recent_reviews[0]).toHaveProperty('user');
+    expect(response.body.recent_reviews[0].user).toHaveProperty('username', 'user2');
   });
 
   it('returns 400 when id is invalid', async () => {
