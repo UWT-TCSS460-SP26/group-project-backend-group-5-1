@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 import * as movieService from '../../src/services/movies';
+import { prisma } from '../../src/lib/prisma';
 
 jest.mock('../../src/services/movies', () => ({
   ...jest.requireActual('../../src/services/movies'),
@@ -8,6 +9,18 @@ jest.mock('../../src/services/movies', () => ({
   fetchMoviePage: jest.fn(),
   parseMovieQuery: jest.requireActual('../../src/services/movies').parseMovieQuery,
   TMDB_PAGE_SIZE: 20,
+}));
+
+jest.mock('../../src/lib/prisma', () => ({
+  prisma: {
+    rating: {
+      aggregate: jest.fn(),
+    },
+    review: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
+  },
 }));
 
 const mockMovieResponse = {
@@ -47,6 +60,19 @@ describe('GET /v1/movies/:id', () => {
 
   it('returns 200 and correct fields on success', async () => {
     (movieService.fetchTmdb as jest.Mock).mockResolvedValue(mockMovieResponse);
+    (prisma.rating.aggregate as jest.Mock).mockResolvedValue({
+      _avg: { score: 8.5 },
+      _count: 10,
+    });
+    (prisma.review.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        body: 'Great movie!',
+        createdAt: new Date('2023-01-01'),
+        user: { username: 'user1' },
+      },
+    ]);
+    (prisma.review.count as jest.Mock).mockResolvedValue(5);
 
     const res = await request(app).get('/v1/movies/11');
     expect(res.status).toBe(200);
@@ -60,17 +86,35 @@ describe('GET /v1/movies/:id', () => {
     expect(res.body).toHaveProperty('belongs_to_collection');
     expect(res.body).toHaveProperty('production_companies');
     expect(res.body).toHaveProperty('imdb_id');
+    expect(res.body).toHaveProperty('community_rating', 8.5);
+    expect(res.body).toHaveProperty('community_rating_count', 10);
+    expect(res.body).toHaveProperty('review_count', 5);
+    expect(res.body).toHaveProperty('recent_reviews');
+    expect(res.body.recent_reviews).toHaveLength(1);
+    expect(res.body.recent_reviews[0]).toHaveProperty('review_text', 'Great movie!');
+    expect(res.body.recent_reviews[0]).toHaveProperty('user');
+    expect(res.body.recent_reviews[0].user).toHaveProperty('username', 'user1');
   });
 
-  it('strips fields not in the allowlist', async () => {
+  it('returns full TMDB data without stripping fields', async () => {
     (movieService.fetchTmdb as jest.Mock).mockResolvedValue(mockMovieResponse);
+    (prisma.rating.aggregate as jest.Mock).mockResolvedValue({
+      _avg: { score: null },
+      _count: 0,
+    });
+    (prisma.review.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.review.count as jest.Mock).mockResolvedValue(0);
 
     const res = await request(app).get('/v1/movies/11');
     expect(res.status).toBe(200);
-    expect(res.body).not.toHaveProperty('popularity');
-    expect(res.body).not.toHaveProperty('vote_average');
-    expect(res.body).not.toHaveProperty('vote_count');
-    expect(res.body).not.toHaveProperty('id');
+    expect(res.body).toHaveProperty('popularity'); // Assuming TMDB includes it
+    expect(res.body).toHaveProperty('vote_average');
+    expect(res.body).toHaveProperty('vote_count');
+    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('community_rating', null);
+    expect(res.body).toHaveProperty('community_rating_count', 0);
+    expect(res.body).toHaveProperty('review_count', 0);
+    expect(res.body.recent_reviews).toEqual([]);
   });
 
   it('returns 400 when id is invalid', async () => {
