@@ -1411,7 +1411,7 @@ components:
 
     IssueSubmission:
       type: object
-      description: Payload for creating a public issue report.
+      description: Payload for creating a public issue report. At least one of title or description is required.
       properties:
         title:
           type: string
@@ -1433,7 +1433,6 @@ components:
           type: string
           example: alice@example.com
           description: Optional reporter contact email.
-      description: At least one of title or description is required.
 
     IssueSubmissionResponse:
       type: object
