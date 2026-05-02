@@ -4,7 +4,6 @@ import fs from 'fs';
 import YAML from 'yaml';
 import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
-import devAuthRouter from './routes/devAuth';
 
 const app = express();
 
@@ -31,7 +30,6 @@ app.get('/health', (_request: Request, response: Response) => {
 });
 
 app.use(routes);
-app.use('/auth', devAuthRouter);
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
