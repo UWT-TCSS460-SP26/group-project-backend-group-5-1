@@ -19,8 +19,8 @@ jest.mock('../../src/lib/prisma', () => ({
 
 const mockReview = prisma.review as jest.Mocked<typeof prisma.review>;
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
-const asUser = authHeader({ sub: 1, role: 'user' });
-const asOtherUser = authHeader({ sub: 2, role: 'user' });
+const asUser = authHeader({ sub: 1, role: 'User' });
+const asOtherUser = authHeader({ sub: 2, role: 'User' });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -224,5 +224,36 @@ describe('DELETE /v1/reviews/:id', () => {
     (mockReview.findUnique as jest.Mock).mockResolvedValueOnce(null);
     const response = await request(app).delete('/v1/reviews/1').set(asUser);
     expect(response.status).toBe(404);
+  });
+
+  it('Admin can delete another user\'s review', async () => {
+    (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 1,
+      mediaId: 550,
+      userId: 99,
+      body: 'Someone else wrote this.',
+    });
+    (mockReview.delete as jest.Mock).mockResolvedValueOnce({ id: 1 });
+
+    const res = await request(app)
+      .delete('/v1/reviews/1')
+      .set(authHeader({ sub: 1, role: 'Admin' }));
+
+    expect(res.status).toBe(204);
+  });
+
+  it('Moderator cannot delete another user\'s review', async () => {
+    (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 1,
+      mediaId: 550,
+      userId: 99,
+      body: 'Someone else wrote this.',
+    });
+
+    const res = await request(app)
+      .delete('/v1/reviews/1')
+      .set(authHeader({ sub: 1, role: 'Moderator' }));
+
+    expect(res.status).toBe(403);
   });
 });

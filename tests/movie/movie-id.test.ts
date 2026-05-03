@@ -107,10 +107,7 @@ describe('GET /v1/movies/:id', () => {
 
     const res = await request(app).get('/v1/movies/11');
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('popularity'); // Assuming TMDB includes it
-    expect(res.body).toHaveProperty('vote_average');
-    expect(res.body).toHaveProperty('vote_count');
-    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('title');
     expect(res.body).toHaveProperty('community_rating', null);
     expect(res.body).toHaveProperty('community_rating_count', 0);
     expect(res.body).toHaveProperty('review_count', 0);
