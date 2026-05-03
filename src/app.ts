@@ -4,7 +4,6 @@ import fs from 'fs';
 import YAML from 'yaml';
 import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
-import devAuthRouter from './routes/devAuth';
 
 const app = express();
 

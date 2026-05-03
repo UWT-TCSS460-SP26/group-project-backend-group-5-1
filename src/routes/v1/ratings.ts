@@ -7,6 +7,7 @@ import {
   deleteRating,
 } from '../../controllers/ratings';
 import { requireAuth } from '../../middleware/requireAuth';
+import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 
 const ratingsRouter = Router();
 
@@ -15,8 +16,8 @@ ratingsRouter.get('/:mediaType/:mediaId', getRatingsForItem);
 ratingsRouter.get('/:mediaType/:mediaId/:userId', getRatingByUser);
 
 // PROTECTED - create, update, delete
-ratingsRouter.post('/', requireAuth, createRating);
-ratingsRouter.put('/:id', requireAuth, updateRating);
-ratingsRouter.delete('/:id', requireAuth, deleteRating);
+ratingsRouter.post('/', requireAuth, resolveLocalUser, createRating);
+ratingsRouter.put('/:id', requireAuth, resolveLocalUser, updateRating);
+ratingsRouter.delete('/:id', requireAuth, resolveLocalUser, deleteRating);
 
 export { ratingsRouter };
