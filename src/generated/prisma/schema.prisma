@@ -9,8 +9,11 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
+  subjectId String   @unique
   username  String   @unique
   email     String   @unique
+  firstName String?
+  lastName  String?
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,21 +56,19 @@ model Review {
 }
 
 enum IssueStatus {
-  NEW
-  TRIAGE
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
+  Open
+  InProgress
+  Resolved
+  Closed
 }
 
 model Issue {
-  id            Int         @id @default(autoincrement())
-  title         String?
-  description   String?
-  reproSteps    String?
-  reporter      String?
-  reporterEmail String?
-  status        IssueStatus @default(NEW)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String
+  reproSteps  String?
+  reporter    String?
+  status      IssueStatus @default(Open)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }

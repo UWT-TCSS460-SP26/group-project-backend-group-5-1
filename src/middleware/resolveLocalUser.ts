@@ -50,13 +50,16 @@ export async function resolveLocalUser(
 
     const user = await prisma.user.upsert({
       where: { subjectId: subject },
-      update: {},   // already exists — nothing to update on a race condition
+      update: {}, // already exists — nothing to update on a race condition
       create: {
         subjectId: subject,
-        username:  (info.preferred_username as string | undefined) ?? (info.sub as string | undefined) ?? subject,
-        email:     (info.email as string | undefined)              ?? `${subject}@unknown.invalid`,
-        firstName: (info.given_name as string | undefined)         ?? null,
-        lastName:  (info.family_name as string | undefined)        ?? null,
+        username:
+          (info.preferred_username as string | undefined) ??
+          (info.sub as string | undefined) ??
+          subject,
+        email: (info.email as string | undefined) ?? `${subject}@unknown.invalid`,
+        firstName: (info.given_name as string | undefined) ?? null,
+        lastName: (info.family_name as string | undefined) ?? null,
       },
     });
 

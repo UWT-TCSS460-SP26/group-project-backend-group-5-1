@@ -17,11 +17,11 @@ jest.mock('../src/lib/prisma', () => ({
 process.env.AUTH_ISSUER = 'https://example.test';
 process.env.API_AUDIENCE = 'test-audience';
 
-const request = require('supertest');
-const { app } = require('../src/app');
-const { prisma } = require('../src/lib/prisma');
+import request from 'supertest';
+import { app } from '../src/app';
+import { prisma } from '../src/lib/prisma';
 
-const mockIssueCreate = (prisma as any).issue.create as jest.Mock<Promise<unknown>, [unknown]>;
+const mockIssueCreate = jest.mocked(prisma.issue.create);
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -35,13 +35,11 @@ describe('POST /v1/issues', () => {
       createdAt: new Date('2026-05-02T13:04:00.000Z'),
     });
 
-    const response = await request(app)
-      .post('/v1/issues')
-      .send({
-        title: 'Search results fail',
-        description: 'The discovery endpoint returns 500 when query is empty.',
-        reporter: 'QA team',
-      });
+    const response = await request(app).post('/v1/issues').send({
+      title: 'Search results fail',
+      description: 'The discovery endpoint returns 500 when query is empty.',
+      reporter: 'QA team',
+    });
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({

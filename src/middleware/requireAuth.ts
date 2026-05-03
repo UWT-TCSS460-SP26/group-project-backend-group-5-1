@@ -88,7 +88,6 @@ export const requireRole = (role: Role): RequestHandler => {
   };
 };
 
-
 /**
  * Minimum-role gate using the 5-tier auth-squared hierarchy:
  * User < Moderator < Admin < SuperAdmin < Owner
