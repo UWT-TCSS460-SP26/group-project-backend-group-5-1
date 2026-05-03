@@ -17,8 +17,8 @@ jest.mock('../../src/lib/prisma', () => ({
 }));
 
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
-const asUser = authHeader({ sub: 1, role: 'user' });
-const asOtherUser = authHeader({ sub: 2, role: 'user' });
+const asUser = authHeader({ sub: 1, role: 'User' });
+const asOtherUser = authHeader({ sub: 2, role: 'User' });
 
 beforeEach(() => {
   jest.clearAllMocks();
