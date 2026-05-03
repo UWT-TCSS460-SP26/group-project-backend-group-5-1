@@ -26,6 +26,8 @@ tags:
     description: User reviews for movies and TV shows.
   - name: Auth
     description: Authentication endpoints.
+  - name: Issues
+    description: Public bug report submission endpoints.
 
 paths:
   /health:
@@ -941,6 +943,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/issues:
+    post:
+      tags: [Issues]
+      summary: Submit a public bug report
+      description: Accepts a visitor bug report and persists it as an issue. No auth required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueSubmission'
+      responses:
+        '201':
+          description: Bug report accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueSubmissionResponse'
+        '400':
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to save bug report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /auth/dev-login:
     post:
       tags: [Auth]
@@ -1375,6 +1408,48 @@ components:
               type: integer
             email:
               type: string
+
+    IssueSubmission:
+      type: object
+      description: Payload for creating a public issue report. At least one of title or description is required.
+      properties:
+        title:
+          type: string
+          example: Unable to load list of movies
+          description: A short summary of the bug.
+        description:
+          type: string
+          example: The movie discovery endpoint returns 500 when search includes dates.
+          description: A detailed description of the problem.
+        reproSteps:
+          type: string
+          example: 1. Open /v1/movies 2. Set primary_release_date_gte=2020-01-01 3. Send request
+          description: Optional reproduction steps or expected behavior.
+        reporter:
+          type: string
+          example: alice@example.com
+          description: Optional name or identifier of the reporter.
+        reporterEmail:
+          type: string
+          example: alice@example.com
+          description: Optional reporter contact email.
+
+    IssueSubmissionResponse:
+      type: object
+      properties:
+        issueId:
+          type: integer
+          example: 123
+        status:
+          type: string
+          example: NEW
+        message:
+          type: string
+          example: Bug report submitted successfully
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-02T13:04:00.000Z'
 
     Error:
       type: object
