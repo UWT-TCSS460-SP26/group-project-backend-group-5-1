@@ -8,7 +8,12 @@ import { routes } from './routes';
 const app = express();
 
 // Application-level middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ALLOWED_ORIGINS?.split(','),
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 
 // OpenAPI documentation
