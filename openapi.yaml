@@ -20,6 +20,14 @@ tags:
     description: Movie search, discovery, and details.
   - name: TV
     description: TV show search, discovery, and details.
+  - name: Ratings
+    description: User ratings for movies and TV shows.
+  - name: Reviews
+    description: User reviews for movies and TV shows.
+  - name: Auth
+    description: Authentication endpoints.
+  - name: Issues
+    description: Public bug report submission endpoints.
 
 paths:
   /health:
@@ -449,7 +457,577 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/ratings/{mediaType}/{mediaId}:
+    get:
+      tags: [Ratings]
+      summary: Get all ratings for a TMDB media item
+      description: Returns all ratings for a given TMDB media type and ID.
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rating'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/ratings/{mediaType}/{mediaId}/{userId}:
+    get:
+      tags: [Ratings]
+      summary: Get a user's rating for a TMDB media item
+      description: Returns the rating for a specific user on a TMDB media item.
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rating found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/ratings:
+    post:
+      tags: [Ratings]
+      summary: Create a rating
+      description: Creates a new rating for a TMDB item for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mediaId
+                - mediaType
+                - score
+              properties:
+                mediaId:
+                  type: integer
+                  example: 550
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                  example: movie
+                score:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 8
+      responses:
+        '201':
+          description: Rating created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized — JWT required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Rating already exists — use PUT to update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/ratings/{ratingId}:
+    put:
+      tags: [Ratings]
+      summary: Update a rating
+      description: Updates the score of an existing rating belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - score
+              properties:
+                score:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 9
+      responses:
+        '200':
+          description: Rating updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — not the owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: [Ratings]
+      summary: Delete a rating
+      description: Deletes a rating belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ratingId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Rating deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — not the owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/reviews/{mediaType}/{mediaId}:
+    get:
+      tags: [Reviews]
+      summary: Get all reviews for a TMDB media item
+      description: Returns all reviews for a given TMDB media type and ID.
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/reviews/{mediaType}/{mediaId}/{userId}:
+    get:
+      tags: [Reviews]
+      summary: Get a user's review for a TMDB media item
+      description: Returns the review for a specific user on a TMDB media item.
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Review found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/reviews:
+    post:
+      tags: [Reviews]
+      summary: Create a review
+      description: Creates a new review for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mediaId
+                - mediaType
+                - body
+                - ratingId
+              properties:
+                mediaId:
+                  type: integer
+                  example: 550
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                body:
+                  type: string
+                  example: 'This movie was incredible!'
+                ratingId:
+                  type: integer
+                  example: 1
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized — JWT required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Review already exists — use PUT to update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/reviews/{reviewsId}:
+    put:
+      tags: [Reviews]
+      summary: Update a review
+      description: Updates the body of an existing review belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  example: 'Updated review text.'
+      responses:
+        '200':
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — not the owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: [Reviews]
+      summary: Delete a review
+      description: Deletes a review belonging to the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Review deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — not the owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/reviews/admin/{id}:
+    delete:
+      tags: [Reviews]
+      summary: Delete a review (admin)
+      description: Deletes any review as an administrator.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Review deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/issues:
+    post:
+      tags: [Issues]
+      summary: Submit a public bug report
+      description: Accepts a visitor bug report and persists it as an issue. No auth required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueSubmission'
+      responses:
+        '201':
+          description: Bug report accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueSubmissionResponse'
+        '400':
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to save bug report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/dev-login:
+    post:
+      tags: [Auth]
+      summary: Dev login (temporary)
+      description: |
+        TEMPORARY — Sprint 2 only. Accepts a username, find-or-creates a user
+        with role='user', and returns a signed JWT. No password validation is
+        performed. DO NOT deploy to a public URL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  example: alice
+                email:
+                  type: string
+                  example: alice@example.test
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Missing username
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: JWT_SECRET not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     MovieSummary:
       type: object
@@ -774,6 +1352,104 @@ components:
               profile_path:
                 type: string
                 nullable: true
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        mediaId:
+          type: integer
+        mediaType:
+          type: string
+        score:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        mediaId:
+          type: integer
+        ratingId:
+          type: integer
+        mediaType:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+
+    IssueSubmission:
+      type: object
+      description: Payload for creating a public issue report. At least one of title or description is required.
+      properties:
+        title:
+          type: string
+          example: Unable to load list of movies
+          description: A short summary of the bug.
+        description:
+          type: string
+          example: The movie discovery endpoint returns 500 when search includes dates.
+          description: A detailed description of the problem.
+        reproSteps:
+          type: string
+          example: 1. Open /v1/movies 2. Set primary_release_date_gte=2020-01-01 3. Send request
+          description: Optional reproduction steps or expected behavior.
+        reporter:
+          type: string
+          example: alice@example.com
+          description: Optional name or identifier of the reporter.
+        reporterEmail:
+          type: string
+          example: alice@example.com
+          description: Optional reporter contact email.
+
+    IssueSubmissionResponse:
+      type: object
+      properties:
+        issueId:
+          type: integer
+          example: 123
+        status:
+          type: string
+          example: NEW
+        message:
+          type: string
+          example: Bug report submitted successfully
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-02T13:04:00.000Z'
 
     Error:
       type: object

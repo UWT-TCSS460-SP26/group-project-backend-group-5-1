@@ -7,10 +7,11 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   moduleNameMapper: {
     '^@scalar/express-api-reference$': '<rootDir>/tests/__mocks__/scalarMock.cjs',
+    '^express-jwt$': '<rootDir>/tests/__mocks__/express-jwt.cjs',
+    '^jwks-rsa$': '<rootDir>/tests/__mocks__/jwks-rsa.cjs',
   },
-  globals: {
-    'ts-jest': {
-      tsconfig: './tsconfig.test.json',
-    },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: './tsconfig.test.json' }],
   },
+  setupFiles: ['./tests/jest.setup.env.ts'],
 };

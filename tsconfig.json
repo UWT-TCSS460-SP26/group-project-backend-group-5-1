@@ -5,7 +5,7 @@
     "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["jest"],
+    "types": ["node", "jest"],
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
@@ -13,10 +13,11 @@
     "sourceMap": true,
     "declaration": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false
   },
   "typeRoots": ["./node_modules/@types"],
   "types": ["node", "jest"],
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }

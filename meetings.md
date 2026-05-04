@@ -120,4 +120,3 @@ Week 4 Meeting
 - removed duplicate mounted auth route
 - cleared up prisma confusion and fixed VS code errors for prisma features
 - docker container for database composed for everyone
-

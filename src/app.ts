@@ -4,11 +4,17 @@ import fs from 'fs';
 import YAML from 'yaml';
 import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
+import { authRouter } from './routes/auth';
 
 const app = express();
 
 // Application-level middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ALLOWED_ORIGINS?.split(','),
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json());
 
 // OpenAPI documentation
@@ -29,6 +35,7 @@ app.get('/health', (_request: Request, response: Response) => {
   });
 });
 
+app.use('/auth', authRouter);
 app.use(routes);
 
 // 404 handler — must be after all routes
