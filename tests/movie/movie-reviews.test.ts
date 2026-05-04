@@ -3,40 +3,6 @@ import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { authHeader } from '../helpers';
 
-jest.mock('jwks-rsa', () => ({
-  expressJwtSecret: jest.fn(() => jest.fn()),
-}));
-
-jest.mock('express-jwt', () => {
-  const jwt = jest.requireActual<typeof import('jsonwebtoken')>('jsonwebtoken');
-  return {
-    expressjwt: jest.fn(
-      () =>
-        (
-          req: import('express').Request & { auth?: Record<string, unknown> },
-          _res: import('express').Response,
-          next: import('express').NextFunction
-        ) => {
-          const header: string | undefined = req.headers?.authorization;
-          if (!header?.startsWith('Bearer ')) {
-            return next(
-              Object.assign(new Error('No authorization token'), { name: 'UnauthorizedError' })
-            );
-          }
-          try {
-            req.auth = jwt.verify(header.slice(7), process.env.JWT_SECRET!) as Record<
-              string,
-              unknown
-            >;
-            next();
-          } catch {
-            next(Object.assign(new Error('Invalid token'), { name: 'UnauthorizedError' }));
-          }
-        }
-    ),
-  };
-});
-
 jest.mock('../../src/middleware/resolveLocalUser', () => ({
   resolveLocalUser: jest.fn(
     (
@@ -270,7 +236,7 @@ describe('DELETE /v1/reviews/:id', () => {
     expect(response.status).toBe(404);
   });
 
-  it('Admin can delete another user\'s review', async () => {
+  it("Admin can delete another user's review", async () => {
     (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
       mediaId: 550,
@@ -286,7 +252,7 @@ describe('DELETE /v1/reviews/:id', () => {
     expect(res.status).toBe(204);
   });
 
-  it('Moderator cannot delete another user\'s review', async () => {
+  it("Moderator cannot delete another user's review", async () => {
     (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
       mediaId: 550,
