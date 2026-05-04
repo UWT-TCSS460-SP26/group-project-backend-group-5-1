@@ -14,7 +14,6 @@ type IssuePayload = {
   description?: string;
   reproSteps?: string;
   reporter?: string;
-  reporterEmail?: string;
 };
 
 type IssueValidationResult = {
@@ -28,7 +27,6 @@ const validateIssue = (body: unknown): IssueValidationResult => {
   const description = normalizeText(payload.description);
   const reproSteps = normalizeText(payload.reproSteps);
   const reporter = normalizeText(payload.reporter);
-  const reporterEmail = normalizeText(payload.reporterEmail);
 
   const errors: string[] = [];
 
@@ -64,14 +62,6 @@ const validateIssue = (body: unknown): IssueValidationResult => {
     errors.push('reporter must be a string');
   }
 
-  if (payload.reporterEmail !== undefined && payload.reporterEmail !== null) {
-    if (!isString(payload.reporterEmail)) {
-      errors.push('reporterEmail must be a string');
-    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.reporterEmail.trim())) {
-      errors.push('reporterEmail must be a valid email address');
-    }
-  }
-
   return {
     errors,
     data: {
@@ -79,7 +69,6 @@ const validateIssue = (body: unknown): IssueValidationResult => {
       description,
       reproSteps,
       reporter,
-      reporterEmail,
     },
   };
 };
@@ -100,8 +89,8 @@ export const createIssue = async (req: Request, res: Response): Promise<void> =>
 
   try {
     const issueRows = await prisma.$queryRaw<IssueRow[]>`
-      INSERT INTO "Issue" ("title", "description", "reproSteps", "reporter", "reporterEmail", "status")
-      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, ${data.reporterEmail}, 'Open')
+      INSERT INTO "Issue" ("title", "description", "reproSteps", "reporter", "status")
+      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, 'Open')
       RETURNING "id", "status", "createdAt"
     `;
     const issue = issueRows[0];

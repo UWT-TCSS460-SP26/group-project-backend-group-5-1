@@ -57,22 +57,6 @@ describe('POST /v1/issues', () => {
     expect(res.body.details).toContain('title must be a string');
   });
 
-  it('rejects an invalid reporterEmail', async () => {
-    const res = await request(app)
-      .post('/v1/issues')
-      .send({ title: 'Valid', reporterEmail: 'not-an-email' });
-    expect(res.status).toBe(400);
-    expect(res.body.details).toContain('reporterEmail must be a valid email address');
-  });
-
-  it('accepts a valid reporterEmail', async () => {
-    (prisma.$queryRaw as jest.Mock).mockResolvedValueOnce([fakeRow]);
-    const res = await request(app)
-      .post('/v1/issues')
-      .send({ title: 'Bug', reporterEmail: 'user@example.com' });
-    expect(res.status).toBe(201);
-  });
-
   it('returns 500 when the database throws', async () => {
     (prisma.$queryRaw as jest.Mock).mockRejectedValueOnce(new Error('DB down'));
     const res = await request(app)

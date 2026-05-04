@@ -974,53 +974,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /auth/dev-login:
-    post:
-      tags: [Auth]
-      summary: Dev login (temporary)
-      description: |
-        TEMPORARY — Sprint 2 only. Accepts a username, find-or-creates a user
-        with role='user', and returns a signed JWT. No password validation is
-        performed. DO NOT deploy to a public URL.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - username
-              properties:
-                username:
-                  type: string
-                  example: alice
-                email:
-                  type: string
-                  example: alice@example.test
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
-          description: Missing username
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: JWT_SECRET not configured
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
 components:
   securitySchemes:
     bearerAuth:
@@ -1429,10 +1382,6 @@ components:
           type: string
           example: alice@example.com
           description: Optional name or identifier of the reporter.
-        reporterEmail:
-          type: string
-          example: alice@example.com
-          description: Optional reporter contact email.
 
     IssueSubmissionResponse:
       type: object
