@@ -89,8 +89,8 @@ export const createIssue = async (req: Request, res: Response): Promise<void> =>
 
   try {
     const issueRows = await prisma.$queryRaw<IssueRow[]>`
-      INSERT INTO "Issue" ("title", "description", "reproSteps", "reporter", "status")
-      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, 'Open')
+      INSERT INTO "Issue" ("title", "description", "reproSteps", "reporter", "status", "updatedAt")
+      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, 'Open', NOW())
       RETURNING "id", "status", "createdAt"
     `;
     const issue = issueRows[0];

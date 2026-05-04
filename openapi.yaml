@@ -24,8 +24,6 @@ tags:
     description: User ratings for movies and TV shows.
   - name: Reviews
     description: User reviews for movies and TV shows.
-  - name: Auth
-    description: Authentication endpoints.
   - name: Issues
     description: Public bug report submission endpoints.
 
@@ -1391,7 +1389,7 @@ components:
           example: 123
         status:
           type: string
-          example: NEW
+          example: Open
         message:
           type: string
           example: Bug report submitted successfully
