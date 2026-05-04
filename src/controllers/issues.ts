@@ -44,11 +44,19 @@ const validateIssue = (body: unknown): IssueValidationResult => {
     errors.push('title must be a string');
   }
 
-  if (payload.description !== undefined && payload.description !== null && !isString(payload.description)) {
+  if (
+    payload.description !== undefined &&
+    payload.description !== null &&
+    !isString(payload.description)
+  ) {
     errors.push('description must be a string');
   }
 
-  if (payload.reproSteps !== undefined && payload.reproSteps !== null && !isString(payload.reproSteps)) {
+  if (
+    payload.reproSteps !== undefined &&
+    payload.reproSteps !== null &&
+    !isString(payload.reproSteps)
+  ) {
     errors.push('reproSteps must be a string');
   }
 

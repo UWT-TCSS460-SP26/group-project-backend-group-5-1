@@ -226,7 +226,7 @@ describe('DELETE /v1/reviews/:id (tv)', () => {
     expect(response.status).toBe(404);
   });
 
-  it('Admin can delete another user\'s review', async () => {
+  it("Admin can delete another user's review", async () => {
     (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
       mediaId: 1399,
@@ -242,7 +242,7 @@ describe('DELETE /v1/reviews/:id (tv)', () => {
     expect(res.status).toBe(204);
   });
 
-  it('Moderator cannot delete another user\'s review', async () => {
+  it("Moderator cannot delete another user's review", async () => {
     (mockReview.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
       mediaId: 1399,

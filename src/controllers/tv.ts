@@ -52,7 +52,7 @@ export const getTvById = async (req: Request, res: Response): Promise<void> => {
       community_rating: ratingAgg._avg.score || null,
       community_rating_count: ratingAgg._count,
       review_count: reviewCount,
-      recent_reviews: recentReviews.map(r => ({
+      recent_reviews: recentReviews.map((r) => ({
         id: r.id,
         review_text: r.body,
         created_at: r.createdAt,

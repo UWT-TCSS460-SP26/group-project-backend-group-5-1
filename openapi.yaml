@@ -24,8 +24,6 @@ tags:
     description: User ratings for movies and TV shows.
   - name: Reviews
     description: User reviews for movies and TV shows.
-  - name: Auth
-    description: Authentication endpoints.
   - name: Issues
     description: Public bug report submission endpoints.
 
@@ -189,26 +187,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MovieSummary'
-              example:
-                - id: 557
-                  title: Spider-Man
-                  backdrop_path: /zQ8AxTPiCiS5nnwXpwTBPBHSaa5.jpg
-                  poster_path: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
         '400':
           description: Invalid query parameters.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              examples:
-                invalidLimit:
-                  summary: Invalid limit value
-                  value:
-                    error: limit must be a positive integer
-                limitTooHigh:
-                  summary: Limit exceeds maximum
-                  value:
-                    error: limit must not exceed 50
         '500':
           description: Internal server error or TMDB API failure.
           content:
@@ -220,7 +204,9 @@ paths:
     get:
       tags: [Movies]
       summary: Get a movie by ID
-      description: Returns detailed information for a specific movie by its TMDB movie ID.
+      description: >
+        Returns detailed TMDB metadata for a specific movie combined with community
+        aggregate rating, recent reviews, and review count. No auth required.
       parameters:
         - name: id
           in: path
@@ -232,7 +218,7 @@ paths:
           example: 11
       responses:
         '200':
-          description: Detailed information about the requested movie.
+          description: Detailed information about the requested movie including community data.
           content:
             application/json:
               schema:
@@ -344,15 +330,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              examples:
-                invalidLimit:
-                  summary: Invalid limit value
-                  value:
-                    error: limit must be a positive integer
-                limitTooHigh:
-                  summary: Limit exceeds maximum
-                  value:
-                    error: limit must not exceed 50
         '500':
           description: Internal server error or TMDB API failure.
           content:
@@ -397,15 +374,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              examples:
-                invalidLimit:
-                  summary: Invalid limit value
-                  value:
-                    error: limit must be a positive integer
-                limitTooHigh:
-                  summary: Limit exceeds maximum
-                  value:
-                    error: limit must not exceed 50
         '500':
           description: Internal server error or TMDB API failure.
           content:
@@ -417,7 +385,9 @@ paths:
     get:
       tags: [TV]
       summary: Get a TV show by ID
-      description: Returns detailed information for a specific TV show by its TMDB ID.
+      description: >
+        Returns detailed TMDB metadata for a specific TV show combined with community
+        aggregate rating, recent reviews, and review count. No auth required.
       parameters:
         - name: id
           in: path
@@ -429,7 +399,7 @@ paths:
           example: 1396
       responses:
         '200':
-          description: Detailed information about the requested TV show.
+          description: Detailed information about the requested TV show including community data.
           content:
             application/json:
               schema:
@@ -461,7 +431,7 @@ paths:
     get:
       tags: [Ratings]
       summary: Get all ratings for a TMDB media item
-      description: Returns all ratings for a given TMDB media type and ID.
+      description: Returns all ratings for a given TMDB media type and ID. No auth required.
       parameters:
         - name: mediaType
           in: path
@@ -500,7 +470,7 @@ paths:
     get:
       tags: [Ratings]
       summary: Get a user's rating for a TMDB media item
-      description: Returns the rating for a specific user on a TMDB media item.
+      description: Returns the rating for a specific user on a TMDB media item. No auth required.
       parameters:
         - name: mediaType
           in: path
@@ -536,7 +506,10 @@ paths:
     post:
       tags: [Ratings]
       summary: Create a rating
-      description: Creates a new rating for a TMDB item for the authenticated user.
+      description: >
+        Creates a new rating for a TMDB item for the authenticated user.
+        Requires a Bearer token issued by Auth² (issuer: https://tcss-460-iam.onrender.com,
+        audience: group-5-api).
       security:
         - bearerAuth: []
       requestBody:
@@ -576,7 +549,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '401':
-          description: Unauthorized — JWT required
+          description: Unauthorized — valid Auth² Bearer token required
           content:
             application/json:
               schema:
@@ -597,7 +570,7 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: reviewId
+          name: ratingId
           required: true
           schema:
             type: integer
@@ -684,7 +657,7 @@ paths:
     get:
       tags: [Reviews]
       summary: Get all reviews for a TMDB media item
-      description: Returns all reviews for a given TMDB media type and ID.
+      description: Returns all reviews for a given TMDB media type and ID. No auth required.
       parameters:
         - name: mediaType
           in: path
@@ -723,7 +696,7 @@ paths:
     get:
       tags: [Reviews]
       summary: Get a user's review for a TMDB media item
-      description: Returns the review for a specific user on a TMDB media item.
+      description: Returns the review for a specific user on a TMDB media item. No auth required.
       parameters:
         - name: mediaType
           in: path
@@ -759,7 +732,10 @@ paths:
     post:
       tags: [Reviews]
       summary: Create a review
-      description: Creates a new review for the authenticated user.
+      description: >
+        Creates a new review for the authenticated user.
+        Requires a Bearer token issued by Auth² (issuer: https://tcss-460-iam.onrender.com,
+        audience: group-5-api).
       security:
         - bearerAuth: []
       requestBody:
@@ -800,7 +776,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '401':
-          description: Unauthorized — JWT required
+          description: Unauthorized — valid Auth² Bearer token required
           content:
             application/json:
               schema:
@@ -818,7 +794,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /v1/reviews/{reviewsId}:
+  /v1/reviews/{reviewId}:
     put:
       tags: [Reviews]
       summary: Update a review
@@ -827,7 +803,7 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: id
+          name: reviewId
           required: true
           schema:
             type: integer
@@ -877,12 +853,13 @@ paths:
     delete:
       tags: [Reviews]
       summary: Delete a review
-      description: Deletes a review belonging to the authenticated user.
+      description: >
+        Deletes a review. The authenticated user must be the owner, or have the Admin role.
       security:
         - bearerAuth: []
       parameters:
         - in: path
-          name: id
+          name: reviewId
           required: true
           schema:
             type: integer
@@ -896,42 +873,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden — not the owner
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Review not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /v1/reviews/admin/{id}:
-    delete:
-      tags: [Reviews]
-      summary: Delete a review (admin)
-      description: Deletes any review as an administrator.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Review deleted
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Forbidden — admin role required
+          description: Forbidden — not the owner and not an Admin
           content:
             application/json:
               schema:
@@ -947,13 +889,20 @@ paths:
     post:
       tags: [Issues]
       summary: Submit a public bug report
-      description: Accepts a visitor bug report and persists it as an issue. No auth required.
+      description: >
+        Accepts a visitor bug report and persists it as an Issue. No auth required.
+        At least one of title or description must be provided.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/IssueSubmission'
+            example:
+              title: Search results fail
+              description: The discovery endpoint returns 500 when query is empty.
+              reporter: QA team
+              reporterEmail: qa@example.com
       responses:
         '201':
           description: Bug report accepted
@@ -961,61 +910,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IssueSubmissionResponse'
+              example:
+                issueId: 1
+                status: NEW
+                message: Bug report submitted successfully
+                createdAt: '2026-05-02T13:04:00.000Z'
         '400':
-          description: Validation failure
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Failed to save bug report
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/dev-login:
-    post:
-      tags: [Auth]
-      summary: Dev login (temporary)
-      description: |
-        TEMPORARY — Sprint 2 only. Accepts a username, find-or-creates a user
-        with role='user', and returns a signed JWT. No password validation is
-        performed. DO NOT deploy to a public URL.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - username
-              properties:
-                username:
-                  type: string
-                  example: alice
-                email:
-                  type: string
-                  example: alice@example.test
-      responses:
-        '200':
-          description: Login successful
+          description: Validation failure — no title or description provided, or invalid field types.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
+                  error:
                     type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
-          description: Missing username
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                    example: Invalid bug report
+                  details:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - A title or description is required
         '500':
-          description: JWT_SECRET not configured
+          description: Failed to save bug report
           content:
             application/json:
               schema:
@@ -1027,6 +944,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: >
+        RS256-signed JWT issued by Auth² (https://tcss-460-iam.onrender.com).
+        Audience must be group-5-api. Obtain a token from the TCSS 460 Token Playground
+        by selecting the group-5-api audience, then pass it as:
+        Authorization: Bearer <token>
 
   schemas:
     MovieSummary:
@@ -1035,26 +957,24 @@ components:
       properties:
         id:
           type: integer
-          description: The TMDB movie ID.
           example: 557
         title:
           type: string
-          description: The movie title.
           example: Spider-Man
         backdrop_path:
           type: string
           nullable: true
-          description: Relative path to the backdrop image on TMDB's image CDN.
           example: /zQ8AxTPiCiS5nnwXpwTBPBHSaa5.jpg
         poster_path:
           type: string
           nullable: true
-          description: Relative path to the poster image on TMDB's image CDN.
           example: /kjdJntyBeEvqm9w97QGBdxPptzj.jpg
 
     MovieDetail:
       type: object
-      description: Detailed movie information returned from the single movie endpoint.
+      description: >
+        Detailed movie information combined with community ratings and reviews.
+        community_rating is null when no ratings exist yet.
       properties:
         title:
           type: string
@@ -1095,7 +1015,6 @@ components:
                 type: integer
               name:
                 type: string
-          example: [{ id: 12, name: Adventure }]
         original_language:
           type: string
           example: en
@@ -1110,7 +1029,6 @@ components:
                 type: string
               name:
                 type: string
-          example: [{ english_name: English, iso_639_1: en, name: English }]
         budget:
           type: integer
           example: 11000000
@@ -1165,6 +1083,37 @@ components:
             backdrop_path:
               type: string
               nullable: true
+        community_rating:
+          type: number
+          nullable: true
+          description: Average community score (1–10), or null if no ratings exist.
+          example: 8.5
+        community_rating_count:
+          type: integer
+          description: Total number of community ratings.
+          example: 42
+        review_count:
+          type: integer
+          description: Total number of community reviews.
+          example: 17
+        recent_reviews:
+          type: array
+          description: Up to 5 most recent reviews.
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              review_text:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+              user:
+                type: object
+                properties:
+                  username:
+                    type: string
 
     TvSummary:
       type: object
@@ -1172,26 +1121,24 @@ components:
       properties:
         id:
           type: integer
-          description: The TMDB TV show ID.
           example: 1396
         name:
           type: string
-          description: The TV show name.
           example: Breaking Bad
         backdrop_path:
           type: string
           nullable: true
-          description: Relative path to the backdrop image on TMDB's image CDN.
           example: /tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg
         poster_path:
           type: string
           nullable: true
-          description: Relative path to the poster image on TMDB's image CDN.
           example: /ggFHVNu6YYI5L9pCfOacjizRGt.jpg
 
     TvDetail:
       type: object
-      description: Detailed TV show information returned from the single TV endpoint.
+      description: >
+        Detailed TV show information combined with community ratings and reviews.
+        community_rating is null when no ratings exist yet.
       properties:
         name:
           type: string
@@ -1233,7 +1180,6 @@ components:
                 type: integer
               name:
                 type: string
-          example: [{ id: 18, name: Drama }]
         original_language:
           type: string
           example: en
@@ -1352,6 +1298,37 @@ components:
               profile_path:
                 type: string
                 nullable: true
+        community_rating:
+          type: number
+          nullable: true
+          description: Average community score (1–10), or null if no ratings exist.
+          example: 7.8
+        community_rating_count:
+          type: integer
+          description: Total number of community ratings.
+          example: 31
+        review_count:
+          type: integer
+          description: Total number of community reviews.
+          example: 12
+        recent_reviews:
+          type: array
+          description: Up to 5 most recent reviews.
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              review_text:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+              user:
+                type: object
+                properties:
+                  username:
+                    type: string
 
     Rating:
       type: object
@@ -1423,11 +1400,11 @@ components:
           description: A detailed description of the problem.
         reproSteps:
           type: string
-          example: 1. Open /v1/movies 2. Set primary_release_date_gte=2020-01-01 3. Send request
+          example: '1. Open /v1/movies 2. Set primary_release_date_gte=2020-01-01 3. Send request'
           description: Optional reproduction steps or expected behavior.
         reporter:
           type: string
-          example: alice@example.com
+          example: QA team
           description: Optional name or identifier of the reporter.
         reporterEmail:
           type: string
