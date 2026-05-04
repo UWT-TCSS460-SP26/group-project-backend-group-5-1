@@ -2,6 +2,14 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import * as tvService from '../../src/services/tv';
 
+jest.mock('express-jwt', () => ({
+  expressjwt: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('jwks-rsa', () => ({
+  expressJwtSecret: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../src/services/tv', () => ({
   ...jest.requireActual('../../src/services/tv'),
   fetchTvPage: jest.fn(),

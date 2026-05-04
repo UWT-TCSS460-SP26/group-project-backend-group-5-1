@@ -3,6 +3,14 @@ import { app } from '../../src/app';
 import * as movieService from '../../src/services/movies';
 import { prisma } from '../../src/lib/prisma';
 
+jest.mock('express-jwt', () => ({
+  expressjwt: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('jwks-rsa', () => ({
+  expressJwtSecret: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../src/services/movies', () => ({
   ...jest.requireActual('../../src/services/movies'),
   fetchTmdb: jest.fn(),
@@ -24,6 +32,7 @@ jest.mock('../../src/lib/prisma', () => ({
 }));
 
 const mockMovieResponse = {
+  id: 11,
   title: 'Star Wars',
   original_title: 'Star Wars',
   overview: 'Princess Leia...',
@@ -38,6 +47,9 @@ const mockMovieResponse = {
   spoken_languages: [{ english_name: 'English', iso_639_1: 'en', name: 'English' }],
   budget: 11000000,
   revenue: 775398007,
+  popularity: 82.5,
+  vote_average: 8.6,
+  vote_count: 21000,
   poster_path: '/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg',
   backdrop_path: '/2w4xG178RpB4MDAIfTkqAuSJzec.jpg',
   imdb_id: 'tt0076759',

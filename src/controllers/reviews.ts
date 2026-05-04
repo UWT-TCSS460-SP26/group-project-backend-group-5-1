@@ -50,8 +50,7 @@ export async function createReview(req: Request, res: Response) {
     });
 
     return res.status(201).json(review);
-  } catch (err) {
-    console.log(err);
+  } catch (_err) {
     return res.status(500).json({ error: 'Failed to create review' });
   }
 }

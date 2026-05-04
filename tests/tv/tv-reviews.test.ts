@@ -3,6 +3,50 @@ import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { authHeader } from '../helpers';
 
+jest.mock('jwks-rsa', () => ({
+  expressJwtSecret: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('express-jwt', () => {
+  const jwt = jest.requireActual<typeof import('jsonwebtoken')>('jsonwebtoken');
+  return {
+    expressjwt: jest.fn(
+      () =>
+        (
+          req: import('express').Request & { auth?: Record<string, unknown> },
+          _res: import('express').Response,
+          next: import('express').NextFunction
+        ) => {
+          const header: string | undefined = req.headers?.authorization;
+          if (!header?.startsWith('Bearer ')) {
+            return next(
+              Object.assign(new Error('No authorization token'), { name: 'UnauthorizedError' })
+            );
+          }
+          try {
+            req.auth = jwt.verify(header.slice(7), process.env.JWT_SECRET!) as Record<
+              string,
+              unknown
+            >;
+            next();
+          } catch {
+            next(Object.assign(new Error('Invalid token'), { name: 'UnauthorizedError' }));
+          }
+        }
+    ),
+  };
+});
+
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: jest.fn(
+    (
+      _req: import('express').Request,
+      _res: import('express').Response,
+      next: import('express').NextFunction
+    ) => next()
+  ),
+}));
+
 jest.mock('../../src/lib/prisma', () => ({
   prisma: {
     rating: { findUnique: jest.fn() },

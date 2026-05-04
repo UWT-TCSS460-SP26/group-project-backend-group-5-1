@@ -2,6 +2,14 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import * as movieService from '../../src/services/movies';
 
+jest.mock('express-jwt', () => ({
+  expressjwt: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('jwks-rsa', () => ({
+  expressJwtSecret: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../src/services/movies', () => ({
   ...jest.requireActual('../../src/services/movies'),
   fetchMoviePage: jest.fn(),

@@ -17,3 +17,9 @@ jest.mock('../src/middleware/requireAuth', () => ({
   },
   ROLE_HIERARCHY: ['User', 'Moderator', 'Admin', 'SuperAdmin', 'Owner'],
 }));
+
+/*
+process.env.JWT_SECRET = 'test-secret';
+process.env.AUTH_ISSUER = 'https://example.test';
+process.env.API_AUDIENCE = 'test-audience';
+*/

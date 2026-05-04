@@ -51,8 +51,8 @@ export async function createRating(req: Request, res: Response) {
       data: { userId, mediaId: Number(mediaId), mediaType, score },
     });
     return res.status(201).json(created);
-  } catch (err) {
-    console.error('[createRating]', err);
+  } catch (_err) {
+    // console.error('[createRating]', err);
     return res.status(500).json({ error: 'Failed to create rating' });
   }
 }
@@ -71,8 +71,8 @@ export async function getRatingById(req: Request, res: Response) {
     if (!rating) return res.status(404).json({ error: 'Rating not found' });
 
     return res.json(rating);
-  } catch (err) {
-    console.error('[getRatingById]', err);
+  } catch (_err) {
+    // console.error('[getRatingById]', err);
     return res.status(500).json({ error: 'Failed to fetch rating' });
   }
 }
@@ -98,8 +98,8 @@ export async function getRatingsForItem(req: Request, res: Response) {
     });
 
     return res.json(ratings);
-  } catch (err) {
-    console.error('[getRatingsForItem]', err);
+  } catch (_err) {
+    // console.error('[getRatingsForItem]', err);
     return res.status(500).json({ error: 'Failed to fetch ratings' });
   }
 }
@@ -123,8 +123,8 @@ export async function updateRating(req: Request, res: Response) {
 
     const updated = await prisma.rating.update({ where: { id }, data: { score } });
     return res.json(updated);
-  } catch (err) {
-    console.error('[updateRating]', err);
+  } catch (_err) {
+    // console.error('[updateRating]', err);
     return res.status(500).json({ error: 'Failed to update rating' });
   }
 }
@@ -143,8 +143,8 @@ export async function deleteRating(req: Request, res: Response) {
 
     await prisma.rating.delete({ where: { id } });
     return res.status(204).send();
-  } catch (err) {
-    console.error('[deleteRating]', err);
+  } catch (_err) {
+    // console.error('[deleteRating]', err);
     return res.status(500).json({ error: 'Failed to delete rating' });
   }
 }
