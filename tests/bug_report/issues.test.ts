@@ -11,7 +11,7 @@ jest.mock('../../src/lib/prisma', () => ({
 beforeEach(() => jest.clearAllMocks());
 
 describe('POST /v1/issues', () => {
-  const fakeRow = { id: 1, status: 'NEW', createdAt: new Date('2026-05-01T00:00:00Z') };
+  const fakeRow = { id: 1, status: 'Open', createdAt: new Date('2026-05-01T00:00:00Z') };
 
   it('creates an issue with title and description', async () => {
     (prisma.$queryRaw as jest.Mock).mockResolvedValueOnce([fakeRow]);
@@ -21,7 +21,7 @@ describe('POST /v1/issues', () => {
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({
       issueId: 1,
-      status: 'NEW',
+      status: 'Open',
       message: 'Bug report submitted successfully',
     });
     expect(res.body.createdAt).toBeDefined();

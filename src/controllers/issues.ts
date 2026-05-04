@@ -86,7 +86,7 @@ const validateIssue = (body: unknown): IssueValidationResult => {
 
 type IssueRow = {
   id: number;
-  status: 'NEW' | 'TRIAGE' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  status: 'Open' | 'InProgress' | 'Resolved' | 'Closed';
   createdAt: Date;
 };
 
@@ -101,7 +101,7 @@ export const createIssue = async (req: Request, res: Response): Promise<void> =>
   try {
     const issueRows = await prisma.$queryRaw<IssueRow[]>`
       INSERT INTO "Issue" ("title", "description", "reproSteps", "reporter", "reporterEmail", "status")
-      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, ${data.reporterEmail}, 'NEW')
+      VALUES (${data.title}, ${data.description}, ${data.reproSteps}, ${data.reporter}, ${data.reporterEmail}, 'Open')
       RETURNING "id", "status", "createdAt"
     `;
     const issue = issueRows[0];
