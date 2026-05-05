@@ -534,7 +534,11 @@ paths:
     post:
       tags: [Ratings]
       summary: Create a rating
-      description: Creates a new rating for a TMDB item for the authenticated user.
+      description: >
+        Creates a new rating for a TMDB item for the authenticated user.
+        If the user already has a review for the same media item without a linked rating,
+        that review's `ratingId` is automatically updated to reference the new rating.
+        Returns 409 if the user has already rated this item.
       security:
         - bearerAuth: []
       requestBody:
@@ -595,7 +599,7 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: reviewId
+          name: ratingId
           required: true
           schema:
             type: integer
@@ -647,7 +651,9 @@ paths:
     delete:
       tags: [Ratings]
       summary: Delete a rating
-      description: Deletes a rating belonging to the authenticated user.
+      description: >
+        Deletes a rating belonging to the authenticated user.
+        Any review that was linked to this rating will have its `ratingId` automatically cleared to null.
       security:
         - bearerAuth: []
       parameters:
@@ -757,7 +763,10 @@ paths:
     post:
       tags: [Reviews]
       summary: Create a review
-      description: Creates a new review for the authenticated user.
+      description: >
+        Creates a new review for the authenticated user. Do not supply `ratingId` in the request body —
+        if the user already has a rating for the same media item, it is automatically linked.
+        If no rating exists yet, `ratingId` will be null and can be linked later by creating a rating.
       security:
         - bearerAuth: []
       requestBody:
@@ -770,7 +779,6 @@ paths:
                 - mediaId
                 - mediaType
                 - body
-                - ratingId
               properties:
                 mediaId:
                   type: integer
@@ -778,12 +786,10 @@ paths:
                 mediaType:
                   type: string
                   enum: [movie, tv]
+                  example: movie
                 body:
                   type: string
                   example: 'This movie was incredible!'
-                ratingId:
-                  type: integer
-                  example: 1
       responses:
         '201':
           description: Review created
@@ -803,12 +809,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '404':
-          description: Rating not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '409':
           description: Review already exists — use PUT to update
           content:
@@ -816,7 +816,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /v1/reviews/{reviewsId}:
+  /v1/reviews/{id}:
     put:
       tags: [Reviews]
       summary: Update a review
@@ -875,7 +875,7 @@ paths:
     delete:
       tags: [Reviews]
       summary: Delete a review
-      description: Deletes a review belonging to the authenticated user.
+      description: Deletes a review. The owner or an Admin may delete.
       security:
         - bearerAuth: []
       parameters:
@@ -894,7 +894,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden — not the owner
+          description: Forbidden — not the owner or an Admin
           content:
             application/json:
               schema:
@@ -1342,6 +1342,7 @@ components:
           type: integer
         ratingId:
           type: integer
+          nullable: true
         mediaType:
           type: string
         body:

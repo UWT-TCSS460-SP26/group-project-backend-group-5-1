@@ -29,10 +29,16 @@ jest.mock('../../src/lib/prisma', () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    review: {
+      findFirst: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
   },
 }));
 
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
+const mockReview = prisma.review as jest.Mocked<typeof prisma.review>;
 const asUser = authHeader({ sub: 1, role: 'User' });
 const asOtherUser = authHeader({ sub: 2, role: 'User' });
 
@@ -50,6 +56,7 @@ describe('POST /v1/ratings', () => {
       userId: 1,
       score: 8,
     });
+    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
     const response = await request(app)
       .post('/v1/ratings')
@@ -59,6 +66,29 @@ describe('POST /v1/ratings', () => {
     expect(response.status).toBe(201);
     expect(mockRating.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
+    );
+  });
+
+  it('links orphaned review when creating a rating', async () => {
+    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
+    (mockRating.create as jest.Mock).mockResolvedValueOnce({
+      id: 5,
+      mediaId: 120,
+      mediaType: 'movie',
+      userId: 1,
+      score: 8,
+    });
+    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce({ id: 3, userId: 1, mediaId: 120 });
+    (mockReview.update as jest.Mock).mockResolvedValueOnce({ id: 3, ratingId: 5 });
+
+    const response = await request(app)
+      .post('/v1/ratings')
+      .set(asUser)
+      .send({ mediaId: 120, mediaType: 'movie', score: 8 });
+
+    expect(response.status).toBe(201);
+    expect(mockReview.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { ratingId: 5 } })
     );
   });
 
@@ -193,6 +223,7 @@ describe('DELETE /v1/ratings/:id', () => {
       userId: 1,
       score: 8,
     });
+    (mockReview.updateMany as jest.Mock).mockResolvedValueOnce({ count: 0 });
     (mockRating.delete as jest.Mock).mockResolvedValueOnce({ id: 1 });
     const response = await request(app).delete('/v1/ratings/1').set(asUser);
     expect(response.status).toBe(204);

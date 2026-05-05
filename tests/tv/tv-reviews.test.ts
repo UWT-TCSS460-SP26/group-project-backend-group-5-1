@@ -43,9 +43,9 @@ beforeEach(() => {
 });
 
 describe('POST /v1/reviews (tv)', () => {
-  it('creates a tv review with valid token', async () => {
-    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, userId: 1 });
+  it('creates a tv review with valid token and auto-links existing rating', async () => {
     (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
+    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, userId: 1 });
     (mockReview.create as jest.Mock).mockResolvedValueOnce({
       id: 1,
       mediaId: 1399,
@@ -58,18 +58,41 @@ describe('POST /v1/reviews (tv)', () => {
     const response = await request(app)
       .post('/v1/reviews')
       .set(asUser)
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
+      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.' });
 
     expect(response.status).toBe(201);
     expect(mockReview.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
+      expect.objectContaining({ data: expect.objectContaining({ userId: 1, ratingId: 1 }) })
+    );
+  });
+
+  it('creates a tv review with ratingId null when no rating exists', async () => {
+    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
+    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
+    (mockReview.create as jest.Mock).mockResolvedValueOnce({
+      id: 2,
+      mediaId: 1399,
+      mediaType: 'tv',
+      userId: 1,
+      body: 'Great show.',
+      ratingId: null,
+    });
+
+    const response = await request(app)
+      .post('/v1/reviews')
+      .set(asUser)
+      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.' });
+
+    expect(response.status).toBe(201);
+    expect(mockReview.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ ratingId: null }) })
     );
   });
 
   it('returns 401 when token is missing', async () => {
     const response = await request(app)
       .post('/v1/reviews')
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
+      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.' });
     expect(response.status).toBe(401);
   });
 
@@ -77,7 +100,7 @@ describe('POST /v1/reviews (tv)', () => {
     const response = await request(app)
       .post('/v1/reviews')
       .set({ Authorization: 'Bearer not.a.valid.token' })
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
+      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.' });
     expect(response.status).toBe(401);
   });
 
@@ -85,7 +108,7 @@ describe('POST /v1/reviews (tv)', () => {
     const response = await request(app)
       .post('/v1/reviews')
       .set(asUser)
-      .send({ mediaType: 'tv', body: 'Great show.', ratingId: 1 });
+      .send({ mediaType: 'tv', body: 'Great show.' });
     expect(response.status).toBe(400);
   });
 
@@ -93,26 +116,16 @@ describe('POST /v1/reviews (tv)', () => {
     const response = await request(app)
       .post('/v1/reviews')
       .set(asUser)
-      .send({ mediaId: 1399, mediaType: 'tv', ratingId: 1 });
+      .send({ mediaId: 1399, mediaType: 'tv' });
     expect(response.status).toBe(400);
   });
 
-  it('returns 404 when rating not found', async () => {
-    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
-    const response = await request(app)
-      .post('/v1/reviews')
-      .set(asUser)
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 999 });
-    expect(response.status).toBe(404);
-  });
-
   it('returns 409 when review already exists', async () => {
-    (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, userId: 1 });
     (mockReview.findFirst as jest.Mock).mockResolvedValueOnce({ id: 1 });
     const response = await request(app)
       .post('/v1/reviews')
       .set(asUser)
-      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.', ratingId: 1 });
+      .send({ mediaId: 1399, mediaType: 'tv', body: 'Great show.' });
     expect(response.status).toBe(409);
   });
 });

@@ -7,29 +7,15 @@ function getUserId(req: Request): number {
 
 export async function createReview(req: Request, res: Response) {
   try {
-    const { mediaId, mediaType, body, ratingId } = req.body;
+    const { mediaId, mediaType, body } = req.body;
     const userId = getUserId(req);
 
-    if (!mediaId || !mediaType || !body || !ratingId) {
-      return res.status(400).json({ error: 'mediaId, mediaType, body, and ratingId are required' });
-    }
-
-    const rating = await prisma.rating.findUnique({
-      where: { id: Number(ratingId) },
-    });
-
-    if (!rating) {
-      return res
-        .status(404)
-        .json({ error: 'Rating not found. You must create a rating before writing a review.' });
-    }
-
-    if (rating.userId !== userId) {
-      return res.status(403).json({ error: 'You can only review your own ratings.' });
+    if (!mediaId || !mediaType || !body) {
+      return res.status(400).json({ error: 'mediaId, mediaType, and body are required' });
     }
 
     const existing = await prisma.review.findFirst({
-      where: { userId, ratingId: Number(ratingId) },
+      where: { userId, mediaId: Number(mediaId) },
     });
 
     if (existing) {
@@ -38,13 +24,17 @@ export async function createReview(req: Request, res: Response) {
         .json({ error: 'You have already reviewed this item. Use PUT to update your review.' });
     }
 
+    const existingRating = await prisma.rating.findUnique({
+      where: { userId_mediaId: { userId, mediaId: Number(mediaId) } },
+    });
+
     const review = await prisma.review.create({
       data: {
         userId,
         mediaType,
         mediaId: Number(mediaId),
         body,
-        ratingId: Number(ratingId),
+        ratingId: existingRating?.id ?? null,
       },
     });
 

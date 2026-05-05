@@ -29,10 +29,16 @@ jest.mock('../../src/lib/prisma', () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    review: {
+      findFirst: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
   },
 }));
 
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
+const mockReview = prisma.review as jest.Mocked<typeof prisma.review>;
 const asUser = authHeader({ sub: 1, role: 'User' });
 const asOtherUser = authHeader({ sub: 2, role: 'User' });
 
@@ -50,6 +56,7 @@ describe('POST /v1/ratings (tv)', () => {
       userId: 1,
       score: 9,
     });
+    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
     const response = await request(app)
       .post('/v1/ratings')
@@ -193,6 +200,7 @@ describe('DELETE /v1/ratings/:id (tv)', () => {
       userId: 1,
       score: 9,
     });
+    (mockReview.updateMany as jest.Mock).mockResolvedValueOnce({ count: 0 });
     (mockRating.delete as jest.Mock).mockResolvedValueOnce({ id: 1 });
     const response = await request(app).delete('/v1/ratings/1').set(asUser);
     expect(response.status).toBe(204);

@@ -50,6 +50,17 @@ export async function createRating(req: Request, res: Response) {
     const created = await prisma.rating.create({
       data: { userId, mediaId: Number(mediaId), mediaType, score },
     });
+
+    const orphan = await prisma.review.findFirst({
+      where: { userId, mediaId: Number(mediaId), ratingId: null },
+    });
+    if (orphan) {
+      await prisma.review.update({
+        where: { userId_mediaId: { userId, mediaId: Number(mediaId) } },
+        data: { ratingId: created.id },
+      });
+    }
+
     return res.status(201).json(created);
   } catch (_err) {
     // console.error('[createRating]', err);
@@ -141,6 +152,7 @@ export async function deleteRating(req: Request, res: Response) {
     if (!existing) return res.status(404).json({ error: 'Rating not found' });
     if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
+    await prisma.review.updateMany({ where: { ratingId: id }, data: { ratingId: null } });
     await prisma.rating.delete({ where: { id } });
     return res.status(204).send();
   } catch (_err) {
