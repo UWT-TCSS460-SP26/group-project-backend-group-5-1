@@ -103,6 +103,6 @@ export const createIssue = async (req: Request, res: Response): Promise<void> =>
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to save issue';
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: 'Bug report is down' });
   }
 };

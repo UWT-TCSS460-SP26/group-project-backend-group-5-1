@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 
-// Extract userId safely without using "any"
 function getUserId(req: Request): number {
-  return (req as unknown as { user: { sub: number } }).user.sub;
+  return req.localUser!.id;
 }
 
 export async function createReview(req: Request, res: Response) {

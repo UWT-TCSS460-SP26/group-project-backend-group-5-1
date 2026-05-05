@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 
 function getUserId(req: Request): number {
-  return (req as unknown as { user: { sub: number } }).user.sub;
+  return req.localUser!.id;
 }
 
 function parseId(raw: string): number | null {

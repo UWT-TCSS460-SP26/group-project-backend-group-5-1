@@ -6,10 +6,16 @@ import { authHeader } from '../helpers';
 jest.mock('../../src/middleware/resolveLocalUser', () => ({
   resolveLocalUser: jest.fn(
     (
-      _req: import('express').Request,
+      req: import('express').Request,
       _res: import('express').Response,
       next: import('express').NextFunction
-    ) => next()
+    ) => {
+      if (req.user) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (req as any).localUser = { id: Number(req.user.sub) };
+      }
+      next();
+    }
   ),
 }));
 
