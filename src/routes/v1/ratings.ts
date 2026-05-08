@@ -5,11 +5,21 @@ import {
   getRatingsForItem,
   updateRating,
   deleteRating,
+  getMyRatedItems,
 } from '../../controllers/ratings';
 import { requireAuth, requireRoleAtLeast } from '../../middleware/requireAuth';
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 
 const ratingsRouter = Router();
+
+// PROTECTED self-list — must be before /:mediaType/:mediaId to avoid param conflict
+ratingsRouter.get(
+  '/me',
+  requireAuth,
+  requireRoleAtLeast('User'),
+  resolveLocalUser,
+  getMyRatedItems
+);
 
 // PUBLIC - get all ratings for a specific media item
 ratingsRouter.get('/:mediaType/:mediaId', getRatingsForItem);
