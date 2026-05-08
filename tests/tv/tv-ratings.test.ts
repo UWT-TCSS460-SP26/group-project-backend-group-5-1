@@ -55,6 +55,7 @@ describe('POST /v1/ratings (tv)', () => {
       mediaType: 'tv',
       userId: 1,
       score: 9,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
@@ -113,7 +114,14 @@ describe('POST /v1/ratings (tv)', () => {
 describe('GET /v1/ratings/tv/:mediaId', () => {
   it('returns list of ratings for a tv show (public)', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
-      { id: 1, mediaId: 1399, mediaType: 'tv', userId: 1, score: 9 },
+      {
+        id: 1,
+        mediaId: 1399,
+        mediaType: 'tv',
+        userId: 1,
+        score: 9,
+        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
+      },
     ]);
     const response = await request(app).get('/v1/ratings/tv/1399');
     expect(response.status).toBe(200);
@@ -128,6 +136,25 @@ describe('GET /v1/ratings/tv/:mediaId', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(0);
   });
+
+  it('returns the authenticated user ratings on /v1/ratings/me', async () => {
+    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 1,
+        mediaId: 1399,
+        mediaType: 'tv',
+        userId: 1,
+        score: 9,
+        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
+      },
+    ]);
+
+    const response = await request(app).get('/v1/ratings/me').set(asUser);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].author).toEqual({ id: 1, displayName: 'Alice Smith' });
+  });
 });
 
 describe('GET /v1/ratings/tv/:mediaId/:userId', () => {
@@ -138,6 +165,7 @@ describe('GET /v1/ratings/tv/:mediaId/:userId', () => {
       mediaType: 'tv',
       userId: 1,
       score: 9,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app).get('/v1/ratings/tv/1399/1');
     expect(response.status).toBe(200);
@@ -164,6 +192,7 @@ describe('PUT /v1/ratings/:id (tv)', () => {
       mediaId: 1399,
       userId: 1,
       score: 10,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 10 });
     expect(response.status).toBe(200);

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createRating,
+  getMyRatings,
   getRatingByUser,
   getRatingsForItem,
   updateRating,
@@ -10,6 +11,9 @@ import { requireAuth, requireRoleAtLeast } from '../../middleware/requireAuth';
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 
 const ratingsRouter = Router();
+
+// Authenticated user routes
+ratingsRouter.get('/me', requireAuth, requireRoleAtLeast('User'), resolveLocalUser, getMyRatings);
 
 // PUBLIC - get all ratings for a specific media item
 ratingsRouter.get('/:mediaType/:mediaId', getRatingsForItem);
