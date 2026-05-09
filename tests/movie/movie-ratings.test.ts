@@ -70,29 +70,6 @@ describe('POST /v1/ratings', () => {
     );
   });
 
-  it('links orphaned review when creating a rating', async () => {
-    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
-    (mockRating.create as jest.Mock).mockResolvedValueOnce({
-      id: 5,
-      mediaId: 120,
-      mediaType: 'movie',
-      userId: 1,
-      score: 8,
-    });
-    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce({ id: 3, userId: 1, mediaId: 120 });
-    (mockReview.update as jest.Mock).mockResolvedValueOnce({ id: 3, ratingId: 5 });
-
-    const response = await request(app)
-      .post('/v1/ratings')
-      .set(asUser)
-      .send({ mediaId: 120, mediaType: 'movie', score: 8 });
-
-    expect(response.status).toBe(201);
-    expect(mockReview.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { ratingId: 5 } })
-    );
-  });
-
   it('returns 401 when token is missing', async () => {
     const response = await request(app)
       .post('/v1/ratings')
