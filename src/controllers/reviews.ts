@@ -34,7 +34,7 @@ export async function createReview(req: Request, res: Response) {
         mediaType,
         mediaId: Number(mediaId),
         body,
-        ratingId: existingRating?.id ?? null,
+        ratingId: existingRating?.id ?? undefined,
       },
     });
 

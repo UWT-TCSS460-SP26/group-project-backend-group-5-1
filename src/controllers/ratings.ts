@@ -52,7 +52,7 @@ export async function createRating(req: Request, res: Response) {
     });
 
     const orphan = await prisma.review.findFirst({
-      where: { userId, mediaId: Number(mediaId), ratingId: null },
+      where: { userId, mediaId: Number(mediaId), rating: { isNot: {} } },
     });
     if (orphan) {
       await prisma.review.update({
@@ -152,7 +152,6 @@ export async function deleteRating(req: Request, res: Response) {
     if (!existing) return res.status(404).json({ error: 'Rating not found' });
     if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
-    await prisma.review.updateMany({ where: { ratingId: id }, data: { ratingId: null } });
     await prisma.rating.delete({ where: { id } });
     return res.status(204).send();
   } catch (_err) {
