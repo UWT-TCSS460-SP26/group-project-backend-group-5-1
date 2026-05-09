@@ -1,35 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 
-type RatingUser = {
-  id: number;
-  username: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  [key: string]: unknown;
-};
-
-type RatingWithUser = { user?: RatingUser; [key: string]: unknown };
-
 function getUserId(req: Request): number {
   return req.localUser!.id;
-}
-
-function getDisplayName(user: RatingUser): string {
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
-  return fullName || user.username;
-}
-
-function serializeRating(rating: RatingWithUser) {
-  const user = rating.user;
-  const author = user
-    ? { id: user.id, displayName: getDisplayName(user) }
-    : { id: 0, displayName: 'Unknown' };
-  const { user: _user, ...rest } = rating;
-  return {
-    ...rest,
-    author,
-  };
 }
 
 function parseId(raw: string): number | null {
@@ -76,20 +49,19 @@ export async function createRating(req: Request, res: Response) {
 
     const created = await prisma.rating.create({
       data: { userId, mediaId: Number(mediaId), mediaType, score },
-      include: { user: true },
     });
 
     const orphan = await prisma.review.findFirst({
-      where: { userId, mediaId: Number(mediaId) },
+      where: { userId, mediaId: Number(mediaId), ratingId: { equals: null } },
     });
-    if (orphan && orphan.ratingId === null) {
+    if (orphan) {
       await prisma.review.update({
         where: { userId_mediaId: { userId, mediaId: Number(mediaId) } },
         data: { ratingId: created.id },
       });
     }
 
-    return res.status(201).json(serializeRating(created));
+    return res.status(201).json(created);
   } catch (_err) {
     // console.error('[createRating]', err);
     return res.status(500).json({ error: 'Failed to create rating' });
@@ -104,12 +76,12 @@ export async function getRatingById(req: Request, res: Response) {
 
     const rating = await prisma.rating.findUnique({
       where: { id },
-      include: { user: true },
+      include: { user: { select: { id: true, email: true } } },
     });
 
     if (!rating) return res.status(404).json({ error: 'Rating not found' });
 
-    return res.json(serializeRating(rating));
+    return res.json(rating);
   } catch (_err) {
     // console.error('[getRatingById]', err);
     return res.status(500).json({ error: 'Failed to fetch rating' });
@@ -133,10 +105,10 @@ export async function getRatingsForItem(req: Request, res: Response) {
 
     const ratings = await prisma.rating.findMany({
       where: { mediaId: mediaIdNum, mediaType },
-      include: { user: true },
+      include: { user: { select: { id: true, email: true } } },
     });
 
-    return res.json(ratings.map(serializeRating));
+    return res.json(ratings);
   } catch (_err) {
     // console.error('[getRatingsForItem]', err);
     return res.status(500).json({ error: 'Failed to fetch ratings' });
@@ -160,12 +132,8 @@ export async function updateRating(req: Request, res: Response) {
     if (!existing) return res.status(404).json({ error: 'Rating not found' });
     if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
-    const updated = await prisma.rating.update({
-      where: { id },
-      data: { score },
-      include: { user: true },
-    });
-    return res.json(serializeRating(updated));
+    const updated = await prisma.rating.update({ where: { id }, data: { score } });
+    return res.json(updated);
   } catch (_err) {
     // console.error('[updateRating]', err);
     return res.status(500).json({ error: 'Failed to update rating' });
@@ -184,28 +152,12 @@ export async function deleteRating(req: Request, res: Response) {
     if (!existing) return res.status(404).json({ error: 'Rating not found' });
     if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized' });
 
-    await prisma.review.updateMany({
-      where: { ratingId: id },
-      data: { ratingId: null as unknown as number },
-    });
+    await prisma.review.updateMany({ where: { ratingId: id }, data: { ratingId: { set: null } } });
     await prisma.rating.delete({ where: { id } });
     return res.status(204).send();
   } catch (_err) {
     // console.error('[deleteRating]', err);
     return res.status(500).json({ error: 'Failed to delete rating' });
-  }
-}
-
-export async function getMyRatings(req: Request, res: Response) {
-  try {
-    const userId = getUserId(req);
-    const ratings = await prisma.rating.findMany({
-      where: { userId },
-      include: { user: true },
-    });
-    return res.json(ratings.map(serializeRating));
-  } catch (_err) {
-    return res.status(500).json({ error: 'Failed to fetch user ratings' });
   }
 }
 
@@ -222,14 +174,16 @@ export async function getRatingByUser(req: Request, res: Response) {
         mediaType,
         mediaId: Number(mediaId),
       },
-      include: { user: true },
+      include: {
+        user: { select: { id: true, email: true } },
+      },
     });
 
     if (!rating) {
       return res.status(404).json({ error: 'Rating not found' });
     }
 
-    return res.json(serializeRating(rating));
+    return res.json(rating);
   } catch {
     return res.status(500).json({ error: 'Failed to fetch rating' });
   }
