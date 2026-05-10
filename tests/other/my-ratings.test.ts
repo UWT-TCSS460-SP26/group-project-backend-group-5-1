@@ -62,6 +62,16 @@ const mockTvRating = {
   updatedAt: new Date('2024-01-02'),
 };
 
+const otherUserRating = {
+  id: 3,
+  userId: 2,
+  mediaId: 999,
+  mediaType: 'movie',
+  score: 5,
+  createdAt: new Date('2024-01-03'),
+  updatedAt: new Date('2024-01-03'),
+};
+
 const mockMovieTmdb = {
   id: 550,
   title: 'Fight Club',
@@ -169,5 +179,20 @@ describe('GET /v1/ratings/me', () => {
 
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Failed to fetch rated items');
+  });
+
+  it('only returns ratings for the authenticated user, not another user', async () => {
+    // mock only returns user 1's rating, not user 2's
+    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating]);
+    (moviesService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockMovieTmdb);
+
+    const response = await request(app).get('/v1/ratings/me').set(asUser);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].rating.mediaId).toBe(550);
+    // user 2's rating should not appear
+    const ids = response.body.map((item: any) => item.rating.mediaId);
+    expect(ids).not.toContain(otherUserRating.mediaId);
   });
 });

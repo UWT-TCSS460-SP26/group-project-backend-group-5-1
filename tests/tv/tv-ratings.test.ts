@@ -128,6 +128,9 @@ describe('GET /v1/ratings/tv/:mediaId', () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0].mediaId).toBe(1399);
     expect(response.body[0].score).toBe(9);
+    expect(response.body[0].user.username).toBe('alice');
+    expect(response.body[0].user.firstName).toBe('Alice');
+    expect(response.body[0].user.lastName).toBe('Smith');
   });
 
   it('returns empty array when no ratings found', async () => {
@@ -135,25 +138,6 @@ describe('GET /v1/ratings/tv/:mediaId', () => {
     const response = await request(app).get('/v1/ratings/tv/999');
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(0);
-  });
-
-  it('returns the authenticated user ratings on /v1/ratings/me', async () => {
-    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
-      {
-        id: 1,
-        mediaId: 1399,
-        mediaType: 'tv',
-        userId: 1,
-        score: 9,
-        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
-      },
-    ]);
-
-    const response = await request(app).get('/v1/ratings/me').set(asUser);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0].author).toEqual({ id: 1, displayName: 'Alice Smith' });
   });
 });
 
@@ -170,6 +154,9 @@ describe('GET /v1/ratings/tv/:mediaId/:userId', () => {
     const response = await request(app).get('/v1/ratings/tv/1399/1');
     expect(response.status).toBe(200);
     expect(response.body.score).toBe(9);
+    expect(response.body.user.username).toBe('alice');
+    expect(response.body.user.firstName).toBe('Alice');
+    expect(response.body.user.lastName).toBe('Smith');
   });
 
   it('returns 404 if user rating not found', async () => {
