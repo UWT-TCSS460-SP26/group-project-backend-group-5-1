@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createRating,
+  getMyRatings,
   getRatingByUser,
   getRatingsForItem,
   updateRating,

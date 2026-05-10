@@ -53,6 +53,7 @@ describe('POST /v1/reviews', () => {
       userId: 1,
       body: 'Great movie.',
       ratingId: 1,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
 
     const response = await request(app)
@@ -66,7 +67,7 @@ describe('POST /v1/reviews', () => {
     );
   });
 
-  it('creates a review with ratingId null when no rating exists', async () => {
+  it('creates a review when no rating exists', async () => {
     (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce(null);
     (mockReview.create as jest.Mock).mockResolvedValueOnce({
@@ -75,7 +76,7 @@ describe('POST /v1/reviews', () => {
       mediaType: 'movie',
       userId: 1,
       body: 'Great movie.',
-      ratingId: null,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
 
     const response = await request(app)
@@ -85,7 +86,7 @@ describe('POST /v1/reviews', () => {
 
     expect(response.status).toBe(201);
     expect(mockReview.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ ratingId: null }) })
+      expect.objectContaining({ data: expect.not.objectContaining({ ratingId: expect.anything() }) })
     );
   });
 
@@ -133,7 +134,14 @@ describe('POST /v1/reviews', () => {
 describe('GET /v1/reviews/movie/:mediaId', () => {
   it('returns list of reviews for a movie (public)', async () => {
     (mockReview.findMany as jest.Mock).mockResolvedValueOnce([
-      { id: 1, mediaId: 550, mediaType: 'movie', userId: 1, body: 'Great movie.' },
+      {
+        id: 1,
+        mediaId: 550,
+        mediaType: 'movie',
+        userId: 1,
+        body: 'Great movie.',
+        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
+      },
     ]);
     const response = await request(app).get('/v1/reviews/movie/550');
     expect(response.status).toBe(200);
@@ -147,6 +155,25 @@ describe('GET /v1/reviews/movie/:mediaId', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(0);
   });
+
+  it('returns the authenticated user reviews on /v1/reviews/me', async () => {
+    (mockReview.findMany as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 1,
+        mediaId: 550,
+        mediaType: 'movie',
+        userId: 1,
+        body: 'Great movie.',
+        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
+      },
+    ]);
+
+    const response = await request(app).get('/v1/reviews/me').set(asUser);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].author).toEqual({ id: 1, displayName: 'Alice Smith' });
+  });
 });
 
 describe('GET /v1/reviews/movie/:mediaId/:userId', () => {
@@ -157,6 +184,7 @@ describe('GET /v1/reviews/movie/:mediaId/:userId', () => {
       mediaType: 'movie',
       userId: 1,
       body: 'Great movie.',
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app).get('/v1/reviews/movie/550/1');
     expect(response.status).toBe(200);
@@ -183,6 +211,7 @@ describe('PUT /v1/reviews/:id', () => {
       mediaId: 550,
       userId: 1,
       body: 'Even better.',
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app)
       .put('/v1/reviews/1')

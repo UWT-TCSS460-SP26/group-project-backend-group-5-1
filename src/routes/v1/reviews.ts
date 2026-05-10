@@ -3,6 +3,7 @@ import {
   createReview,
   updateReview,
   deleteReview,
+  getMyReviews,
   getReviewsForItem,
   getReviewByUser,
   deleteReviewAdmin,
@@ -11,6 +12,9 @@ import { requireAuth, requireRole, requireRoleAtLeast } from '../../middleware/r
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 
 const reviewsRouter = Router();
+
+// Authenticated user routes
+reviewsRouter.get('/me', requireAuth, requireRoleAtLeast('User'), resolveLocalUser, getMyReviews);
 
 // Public routes
 reviewsRouter.get('/:mediaType/:mediaId', getReviewsForItem);
