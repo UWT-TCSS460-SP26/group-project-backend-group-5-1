@@ -60,6 +60,7 @@ export async function resolveLocalUser(
         email: (info.email as string | undefined) ?? `${subject}@unknown.invalid`,
         firstName: (info.given_name as string | undefined) ?? null,
         lastName: (info.family_name as string | undefined) ?? null,
+        role: req.user?.role ?? 'User',
       },
     });
 
