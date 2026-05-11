@@ -26,6 +26,8 @@ tags:
     description: User reviews for movies and TV shows.
   - name: Issues
     description: Bug report submission (public) and issue management (Admin+).
+  - name: Discovery
+    description: Community-ranked discovery feeds. Public — no auth required.
 
 paths:
   /health:
@@ -1341,6 +1343,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/ratings/me:
+    get:
+      tags: [Ratings]
+      summary: Get the authenticated user's rated items
+      description: >
+        Returns all ratings belonging to the authenticated user, each enriched with TMDB metadata.
+        Identity is derived from the JWT `sub` claim — no `userId` parameter is accepted.
+        Items whose TMDB record cannot be found are silently omitted from the response.
+        Book ratings (mediaType: book) are included with `tmdb: null`.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of the user's ratings enriched with TMDB metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnrichedRating'
+              example:
+                - rating:
+                    id: 1
+                    score: 8
+                    mediaId: 550
+                    mediaType: movie
+                    createdAt: '2024-01-01T00:00:00.000Z'
+                  tmdb:
+                    id: 550
+                    title: Fight Club
+                    poster_path: /pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg
+                    overview: A ticking-time-bomb insomniac and a slippery soap salesman...
+        '401':
+          description: Unauthorized — JWT required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/discovery/top-rated:
+    get:
+      tags: [Discovery]
+      summary: Get community top-rated movies and TV shows
+      description: >
+        Returns up to 20 movies and TV shows ranked by community average rating.
+        Requires a minimum of 10 ratings to filter out items with too few votes.
+        Each result is enriched with TMDB metadata. Items whose TMDB record cannot
+        be found are silently omitted. Public route — no auth required.
+      responses:
+        '200':
+          description: List of top-rated items enriched with TMDB metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiscoveryItem'
+              example:
+                - mediaId: 550
+                  mediaType: movie
+                  community_rating: 9.2
+                  community_rating_count: 15
+                  tmdb:
+                    id: 550
+                    title: Fight Club
+                    poster_path: /pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/discovery/most-reviewed:
+    get:
+      tags: [Discovery]
+      summary: Get community most-reviewed movies and TV shows
+      description: >
+        Returns up to 20 movies and TV shows ranked by total number of community ratings,
+        regardless of score. Each result is enriched with TMDB metadata. Items whose TMDB
+        record cannot be found are silently omitted. Public route — no auth required.
+      responses:
+        '200':
+          description: List of most-reviewed items enriched with TMDB metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiscoveryItem'
+              example:
+                - mediaId: 1396
+                  mediaType: tv
+                  community_rating: 8.8
+                  community_rating_count: 42
+                  tmdb:
+                    id: 1396
+                    name: Breaking Bad
+                    poster_path: /ggFHVNu6YYI5L9pCfOacjizRGt.jpg
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1841,6 +1955,64 @@ components:
           type: string
           format: date-time
           example: '2026-05-02T13:04:00.000Z'
+
+    EnrichedRating:
+      type: object
+      description: A user's rating paired with TMDB metadata for that item.
+      properties:
+        rating:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            score:
+              type: integer
+              minimum: 1
+              maximum: 10
+              example: 8
+            mediaId:
+              type: integer
+              example: 550
+            mediaType:
+              type: string
+              enum: [movie, tv, book]
+              example: movie
+            createdAt:
+              type: string
+              format: date-time
+        tmdb:
+          description: TMDB metadata for the rated item. Null for books or if the item was removed from TMDB.
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/MovieDetail'
+            - $ref: '#/components/schemas/TvDetail'
+
+    DiscoveryItem:
+      type: object
+      description: An aggregated community result enriched with TMDB metadata.
+      properties:
+        mediaId:
+          type: integer
+          example: 550
+        mediaType:
+          type: string
+          enum: [movie, tv]
+          example: movie
+        community_rating:
+          type: number
+          format: float
+          nullable: true
+          example: 9.2
+        community_rating_count:
+          type: integer
+          example: 15
+        tmdb:
+          description: TMDB metadata for this item.
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/MovieDetail'
+            - $ref: '#/components/schemas/TvDetail'
 
     Error:
       type: object

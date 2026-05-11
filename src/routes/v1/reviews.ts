@@ -3,6 +3,7 @@ import {
   createReview,
   updateReview,
   deleteReview,
+  getMyReviews,
   getReviewsForItem,
   getReviewByUser,
   deleteReviewAdmin,
@@ -12,6 +13,9 @@ import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 import { requireNonNegativeIds, requireNonNegativeBodyIds } from '../../middleware/validateId';
 
 const reviewsRouter = Router();
+
+// Authenticated user routes
+reviewsRouter.get('/me', requireAuth, requireRoleAtLeast('User'), resolveLocalUser, getMyReviews);
 
 // Public routes
 reviewsRouter.get('/:mediaType/:mediaId', requireNonNegativeIds('mediaId'), getReviewsForItem);

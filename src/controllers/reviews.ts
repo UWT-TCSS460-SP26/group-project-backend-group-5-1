@@ -1,5 +1,16 @@
 import { Request, Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
+
+type ReviewUser = {
+  id: number;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  [key: string]: unknown;
+};
+
+type ReviewWithUser = { user?: ReviewUser; [key: string]: unknown };
 
 function getUserId(req: Request): number {
   return req.localUser!.id;
@@ -8,6 +19,23 @@ function getUserId(req: Request): number {
 function parseId(raw: string): number | null {
   const n = Number(raw);
   return isNaN(n) || !Number.isInteger(n) ? null : n;
+}
+
+function getDisplayName(user: ReviewUser): string {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+  return fullName || user.username;
+}
+
+function serializeReview(review: ReviewWithUser) {
+  const user = review.user;
+  const author = user
+    ? { id: user.id, displayName: getDisplayName(user) }
+    : { id: 0, displayName: 'Unknown' };
+  const { user: _user, ...rest } = review;
+  return {
+    ...rest,
+    author,
+  };
 }
 
 export async function createReview(req: Request, res: Response) {
@@ -38,17 +66,20 @@ export async function createReview(req: Request, res: Response) {
       where: { userId_mediaId: { userId, mediaId: mediaIdNum } },
     });
 
+    const reviewData = {
+      userId,
+      mediaType,
+      mediaId: Number(mediaId),
+      body,
+      ...(existingRating ? { ratingId: existingRating.id } : {}),
+    };
+
     const review = await prisma.review.create({
-      data: {
-        userId,
-        mediaType,
-        mediaId: mediaIdNum,
-        body,
-        ratingId: existingRating?.id ?? null,
-      },
+      data: reviewData as unknown as Prisma.ReviewUncheckedCreateInput,
+      include: { user: true },
     });
 
-    return res.status(201).json(review);
+    return res.status(201).json(serializeReview(review));
   } catch (_err) {
     return res.status(500).json({ error: 'Failed to create review' });
   }
@@ -76,9 +107,10 @@ export async function updateReview(req: Request, res: Response) {
     const updated = await prisma.review.update({
       where: { id: Number(id) },
       data: { body },
+      include: { user: true },
     });
 
-    return res.json(updated);
+    return res.json(serializeReview(updated));
   } catch {
     return res.status(500).json({ error: 'Failed to update review' });
   }
@@ -126,12 +158,10 @@ export async function getReviewsForItem(req: Request, res: Response) {
         mediaId: mediaIdNum,
         mediaType,
       },
-      include: {
-        user: { select: { id: true, email: true } },
-      },
+      include: { user: true },
     });
 
-    return res.json(reviews);
+    return res.json(reviews.map(serializeReview));
   } catch {
     return res.status(500).json({ error: 'Failed to fetch reviews' });
   }
@@ -155,18 +185,29 @@ export async function getReviewByUser(req: Request, res: Response) {
         mediaType,
         mediaId: mediaIdNum,
       },
-      include: {
-        user: { select: { id: true, email: true } },
-      },
+      include: { user: true },
     });
 
     if (!review) {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    return res.json(review);
+    return res.json(serializeReview(review));
   } catch {
     return res.status(500).json({ error: 'Failed to fetch review' });
+  }
+}
+
+export async function getMyReviews(req: Request, res: Response) {
+  try {
+    const userId = getUserId(req);
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      include: { user: true },
+    });
+    return res.json(reviews.map(serializeReview));
+  } catch {
+    return res.status(500).json({ error: 'Failed to fetch user reviews' });
   }
 }
 

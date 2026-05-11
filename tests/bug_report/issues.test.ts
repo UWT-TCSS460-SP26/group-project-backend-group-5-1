@@ -74,12 +74,69 @@ describe('POST /v1/issues', () => {
     expect(res.body.details).toContain('title must be a string');
   });
 
+  it('rejects a non-string description', async () => {
+    const res = await request(app).post('/v1/issues').send({ description: 456 });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('description must be a string');
+  });
+
+  it('rejects an empty string title with no description', async () => {
+    const res = await request(app).post('/v1/issues').send({ title: '' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
+  it('rejects an empty string description with no title', async () => {
+    const res = await request(app).post('/v1/issues').send({ description: '' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
+  it('rejects when both title and description are empty strings', async () => {
+    const res = await request(app).post('/v1/issues').send({ title: '', description: '' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
+  it('rejects a title that is only whitespace', async () => {
+    const res = await request(app).post('/v1/issues').send({ title: '   ' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
+  it('rejects a description that is only whitespace', async () => {
+    const res = await request(app).post('/v1/issues').send({ description: '   ' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
+  it('rejects when both title and description are only whitespace', async () => {
+    const res = await request(app).post('/v1/issues').send({ title: '   ', description: '   ' });
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('A title or description is required');
+  });
+
   it('returns 500 when the database throws', async () => {
     (prisma.$queryRaw as jest.Mock).mockRejectedValueOnce(new Error('DB down'));
     const res = await request(app)
       .post('/v1/issues')
       .send({ title: 'Valid', description: 'Also valid' });
     expect(res.status).toBe(500);
+  });
+  it('rejects a raw string body', async () => {
+    const res = await request(app)
+      .post('/v1/issues')
+      .set('Content-Type', 'application/json')
+      .send('"banana"');
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a raw number body', async () => {
+    const res = await request(app)
+      .post('/v1/issues')
+      .set('Content-Type', 'application/json')
+      .send('99999');
+    expect(res.status).toBe(400);
   });
 });
 

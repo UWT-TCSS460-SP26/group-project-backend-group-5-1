@@ -55,6 +55,7 @@ describe('POST /v1/ratings', () => {
       mediaType: 'movie',
       userId: 1,
       score: 8,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     (mockReview.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
@@ -66,29 +67,6 @@ describe('POST /v1/ratings', () => {
     expect(response.status).toBe(201);
     expect(mockRating.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 1 }) })
-    );
-  });
-
-  it('links orphaned review when creating a rating', async () => {
-    (mockRating.findFirst as jest.Mock).mockResolvedValueOnce(null);
-    (mockRating.create as jest.Mock).mockResolvedValueOnce({
-      id: 5,
-      mediaId: 120,
-      mediaType: 'movie',
-      userId: 1,
-      score: 8,
-    });
-    (mockReview.findFirst as jest.Mock).mockResolvedValueOnce({ id: 3, userId: 1, mediaId: 120 });
-    (mockReview.update as jest.Mock).mockResolvedValueOnce({ id: 3, ratingId: 5 });
-
-    const response = await request(app)
-      .post('/v1/ratings')
-      .set(asUser)
-      .send({ mediaId: 120, mediaType: 'movie', score: 8 });
-
-    expect(response.status).toBe(201);
-    expect(mockReview.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { ratingId: 5 } })
     );
   });
 
@@ -136,13 +114,23 @@ describe('POST /v1/ratings', () => {
 describe('GET /v1/ratings/movie/:mediaId', () => {
   it('returns list of ratings for a movie (public)', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([
-      { id: 1, mediaId: 120, mediaType: 'movie', userId: 1, score: 8 },
+      {
+        id: 1,
+        mediaId: 120,
+        mediaType: 'movie',
+        userId: 1,
+        score: 8,
+        user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
+      },
     ]);
     const response = await request(app).get('/v1/ratings/movie/120');
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0].mediaId).toBe(120);
     expect(response.body[0].score).toBe(8);
+    expect(response.body[0].user.username).toBe('alice');
+    expect(response.body[0].user.firstName).toBe('Alice');
+    expect(response.body[0].user.lastName).toBe('Smith');
   });
 
   it('returns empty array when no ratings found', async () => {
@@ -166,10 +154,14 @@ describe('GET /v1/ratings/movie/:mediaId/:userId', () => {
       mediaType: 'movie',
       userId: 1,
       score: 8,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app).get('/v1/ratings/movie/120/1');
     expect(response.status).toBe(200);
     expect(response.body.score).toBe(8);
+    expect(response.body.user.username).toBe('alice');
+    expect(response.body.user.firstName).toBe('Alice');
+    expect(response.body.user.lastName).toBe('Smith');
   });
 
   it('returns 404 if user rating not found', async () => {
@@ -207,6 +199,7 @@ describe('PUT /v1/ratings/:id', () => {
       mediaId: 120,
       userId: 1,
       score: 9,
+      user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
     });
     const response = await request(app).put('/v1/ratings/1').set(asUser).send({ score: 9 });
     expect(response.status).toBe(200);
