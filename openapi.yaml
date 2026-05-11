@@ -1428,7 +1428,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /v1/discovery/top-rated:
+  /v1/discover/top-rated:
     get:
       tags: [Discovery]
       summary: Get community top-rated movies and TV shows
@@ -1462,7 +1462,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /v1/discovery/most-reviewed:
+  /v1/discover/most-reviewed:
     get:
       tags: [Discovery]
       summary: Get community most-reviewed movies and TV shows
