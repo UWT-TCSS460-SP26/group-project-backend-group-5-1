@@ -1,16 +1,7 @@
--- CreateEnum
-CREATE TYPE "IssueStatus" AS ENUM ('Open', 'InProgress', 'Resolved', 'Closed');
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "subjectId" TEXT NOT NULL;
+ALTER TABLE "User" ADD COLUMN "firstName" TEXT;
+ALTER TABLE "User" ADD COLUMN "lastName" TEXT;
 
--- CreateTable
-CREATE TABLE "Issue" (
-    "id" SERIAL NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "reproSteps" TEXT,
-    "reporter" TEXT,
-    "status" "IssueStatus" NOT NULL DEFAULT 'Open',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Issue_pkey" PRIMARY KEY ("id")
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "User_subjectId_key" ON "User"("subjectId");
