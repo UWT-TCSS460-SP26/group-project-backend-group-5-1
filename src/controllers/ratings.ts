@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { fetchTmdb as fetchMovieTmdb } from '../services/movies';
-import { fetchTmdb as fetchTvTmdb } from '../services/tv';
 
 function getUserId(req: Request): number {
   return req.localUser!.id;
@@ -10,6 +8,30 @@ function getUserId(req: Request): number {
 function parseId(raw: string): number | null {
   const n = Number(raw);
   return isNaN(n) || !Number.isInteger(n) ? null : n;
+}
+
+type RatingUser = {
+  id: number;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  [key: string]: unknown;
+};
+
+type RatingWithUser = { user?: RatingUser | null; [key: string]: unknown };
+
+function getDisplayName(user: RatingUser): string {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+  return fullName || user.username;
+}
+
+function serializeRating(rating: RatingWithUser) {
+  const user = rating.user;
+  const author = user
+    ? { id: user.id, displayName: getDisplayName(user) }
+    : { id: 0, displayName: 'Unknown' };
+  const { user: _user, ...rest } = rating;
+  return { ...rest, author };
 }
 
 const VALID_MEDIA_TYPES = ['movie', 'tv', 'book'] as const;
@@ -83,12 +105,12 @@ export async function getRatingById(req: Request, res: Response) {
 
     const rating = await prisma.rating.findUnique({
       where: { id },
-      include: { user: { select: { id: true, email: true } } },
+      include: { user: { select: { id: true, username: true, firstName: true, lastName: true } } },
     });
 
     if (!rating) return res.status(404).json({ error: 'Rating not found' });
 
-    return res.json(rating);
+    return res.json(serializeRating(rating as RatingWithUser));
   } catch (_err) {
     // console.error('[getRatingById]', err);
     return res.status(500).json({ error: 'Failed to fetch rating' });
@@ -112,10 +134,10 @@ export async function getRatingsForItem(req: Request, res: Response) {
 
     const ratings = await prisma.rating.findMany({
       where: { mediaId: mediaIdNum, mediaType },
-      include: { user: { select: { id: true, email: true } } },
+      include: { user: { select: { id: true, username: true, firstName: true, lastName: true } } },
     });
 
-    return res.json(ratings);
+    return res.json(ratings.map((r) => serializeRating(r as RatingWithUser)));
   } catch (_err) {
     // console.error('[getRatingsForItem]', err);
     return res.status(500).json({ error: 'Failed to fetch ratings' });
@@ -186,7 +208,7 @@ export async function getRatingByUser(req: Request, res: Response) {
         mediaId: mediaIdNum,
       },
       include: {
-        user: { select: { id: true, email: true } },
+        user: { select: { id: true, username: true, firstName: true, lastName: true } },
       },
     });
 
@@ -194,71 +216,21 @@ export async function getRatingByUser(req: Request, res: Response) {
       return res.status(404).json({ error: 'Rating not found' });
     }
 
-    return res.json(rating);
+    return res.json(serializeRating(rating as RatingWithUser));
   } catch {
     return res.status(500).json({ error: 'Failed to fetch rating' });
   }
 }
 
-/**
- * GET /ratings/me
- * Returns the authenticated user's ratings, each enriched with TMDB metadata.
- * Items that fail TMDB lookup are silently omitted from results.
- * Identity comes from the JWT sub claim via resolveLocalUser — no client-supplied userId is trusted.
- */
 export async function getMyRatedItems(req: Request, res: Response) {
   try {
     const userId = getUserId(req);
-
     const ratings = await prisma.rating.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: { user: { select: { id: true, username: true, firstName: true, lastName: true } } },
     });
-
-    if (ratings.length === 0) {
-      return res.json([]);
-    }
-
-    const enriched = await Promise.all(
-      ratings.map(async (rating) => {
-        // Books have no TMDB endpoint — include the rating row as-is
-        if (rating.mediaType === 'book') {
-          return {
-            rating: {
-              id: rating.id,
-              score: rating.score,
-              mediaId: rating.mediaId,
-              mediaType: rating.mediaType,
-              createdAt: rating.createdAt,
-            },
-            tmdb: null,
-          };
-        }
-
-        try {
-          const tmdbData =
-            rating.mediaType === 'movie'
-              ? await fetchMovieTmdb(`/movie/${rating.mediaId}`)
-              : await fetchTvTmdb(`/tv/${rating.mediaId}`);
-
-          return {
-            rating: {
-              id: rating.id,
-              score: rating.score,
-              mediaId: rating.mediaId,
-              mediaType: rating.mediaType,
-              createdAt: rating.createdAt,
-            },
-            tmdb: tmdbData,
-          };
-        } catch {
-          // TMDB lookup failed (removed item, network error, etc.) — omit from results
-          return null;
-        }
-      })
-    );
-
-    return res.json(enriched.filter((item) => item !== null));
+    return res.json(ratings.map((r) => serializeRating(r as RatingWithUser)));
   } catch (_err) {
     return res.status(500).json({ error: 'Failed to fetch rated items' });
   }

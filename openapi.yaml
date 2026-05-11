@@ -1050,6 +1050,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/reviews/me:
+    get:
+      tags: [Reviews]
+      summary: Get the authenticated user's reviews
+      description: >
+        Returns all reviews written by the authenticated user.
+        Identity is derived from the JWT `sub` claim — no client-supplied user ID is trusted.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of the caller's reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+              example:
+                - id: 7
+                  userId: 1
+                  mediaId: 550
+                  mediaType: movie
+                  body: 'An incredible film that changed my perspective.'
+                  ratingId: 42
+                  createdAt: '2026-04-01T10:00:00.000Z'
+                  updatedAt: '2026-04-01T10:00:00.000Z'
+                  author:
+                    id: 1
+                    displayName: Alice Smith
+        '401':
+          description: Unauthorized — JWT required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /v1/issues:
     post:
       tags: [Issues]
@@ -1346,35 +1389,32 @@ paths:
   /v1/ratings/me:
     get:
       tags: [Ratings]
-      summary: Get the authenticated user's rated items
+      summary: Get the authenticated user's ratings
       description: >
-        Returns all ratings belonging to the authenticated user, each enriched with TMDB metadata.
-        Identity is derived from the JWT `sub` claim — no `userId` parameter is accepted.
-        Items whose TMDB record cannot be found are silently omitted from the response.
-        Book ratings (mediaType: book) are included with `tmdb: null`.
+        Returns all ratings belonging to the authenticated user.
+        Identity is derived from the JWT `sub` claim — no client-supplied user ID is trusted.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: List of the user's ratings enriched with TMDB metadata.
+          description: List of the caller's ratings
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EnrichedRating'
+                  $ref: '#/components/schemas/Rating'
               example:
-                - rating:
+                - id: 1
+                  userId: 1
+                  mediaId: 550
+                  mediaType: movie
+                  score: 8
+                  createdAt: '2024-01-01T00:00:00.000Z'
+                  updatedAt: '2024-01-01T00:00:00.000Z'
+                  author:
                     id: 1
-                    score: 8
-                    mediaId: 550
-                    mediaType: movie
-                    createdAt: '2024-01-01T00:00:00.000Z'
-                  tmdb:
-                    id: 550
-                    title: Fight Club
-                    poster_path: /pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg
-                    overview: A ticking-time-bomb insomniac and a slippery soap salesman...
+                    displayName: Alice Smith
         '401':
           description: Unauthorized — JWT required
           content:
@@ -1461,6 +1501,22 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: >
+        JWT issued by **Auth²** (`https://iam.onrender.com`).
+
+        Required claims:
+
+        - `iss`: `https://iam.onrender.com`
+
+        - `aud`: `group-5-api`
+
+        - `role`: one of `User`, `Moderator`, `Admin`, `SuperAdmin`, `Owner`
+
+        Tokens are RS256-signed and verified via the Auth² JWKS endpoint at
+        `https://iam.onrender.com/.well-known/jwks.json`.
+        Obtain a token from Auth² and pass it as `Authorization: Bearer <token>`.
+      x-issuer: https://iam.onrender.com
+      x-audience: group-5-api
 
   schemas:
     MovieSummary:
@@ -1814,13 +1870,15 @@ components:
         updatedAt:
           type: string
           format: date-time
-        user:
+        author:
           type: object
           properties:
             id:
               type: integer
-            email:
+              example: 1
+            displayName:
               type: string
+              example: Alice Smith
 
     Review:
       type: object
@@ -1851,13 +1909,15 @@ components:
         updatedAt:
           type: string
           format: date-time
-        user:
+        author:
           type: object
           properties:
             id:
               type: integer
-            email:
+              example: 1
+            displayName:
               type: string
+              example: Alice Smith
 
     Issue:
       type: object

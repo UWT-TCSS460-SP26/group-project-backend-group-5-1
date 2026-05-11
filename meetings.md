@@ -121,3 +121,29 @@ Week 4 Meeting
 - removed duplicate mounted auth route
 - cleared up prisma confusion and fixed VS code errors for prisma features
 - docker container for database composed for everyone
+
+Sprint 4 Planning Meeting (Week 5)
+
+Attendees: Kylen, Evin, Carson, Geo
+
+Sprint Goal: Complete all remaining deliverables for Sprint 4 submission.
+
+Backlog items assigned this sprint:
+
+- Kylen: Admin-gated issue management routes (GET list, GET detail, PATCH status, DELETE); OpenAPI documentation for all new routes; partner-facing README
+- Evin: Community discovery routes (top-rated, most-reviewed) with SQL aggregates; discovery tests
+- Carson: Authenticated self-list routes (/ratings/me, /reviews/me); CORS allowlist configuration
+- Geo: Author object on all rating and review responses; ratings/reviews serialization consistency; bug-fix tests
+
+Ceremony notes:
+
+- Sprint review: demoed all Sprint 4 routes against the deployed Render instance; confirmed Auth² token validation and role gates work end-to-end
+- Retrospective: team agreed to keep PR reviews async (comment + approve on GitHub) to avoid blocking merges; identified merge conflicts as main friction point — resolved by rebasing feature branches onto main before opening PRs
+- Next sprint: address any partner integration feedback; improve test coverage for edge cases flagged during review
+
+Sprint 4 Daily Standups (async in group chat):
+
+May 5 — blocked on Prisma schema migration for Issue model; Kylen unblocked by clarifying the migration flow
+May 6 — discovery routes drafted by Evin; ratings serialization in progress by Geo
+May 7 — merge conflicts resolved; all routes passing locally; OpenAPI spec updated
+May 8 — final tests written and passing; README updated; submitted

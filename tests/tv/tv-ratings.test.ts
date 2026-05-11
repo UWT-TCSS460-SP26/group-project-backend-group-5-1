@@ -128,9 +128,8 @@ describe('GET /v1/ratings/tv/:mediaId', () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0].mediaId).toBe(1399);
     expect(response.body[0].score).toBe(9);
-    expect(response.body[0].user.username).toBe('alice');
-    expect(response.body[0].user.firstName).toBe('Alice');
-    expect(response.body[0].user.lastName).toBe('Smith');
+    expect(response.body[0].author.id).toBe(1);
+    expect(response.body[0].author.displayName).toBe('Alice Smith');
   });
 
   it('returns empty array when no ratings found', async () => {
@@ -154,9 +153,8 @@ describe('GET /v1/ratings/tv/:mediaId/:userId', () => {
     const response = await request(app).get('/v1/ratings/tv/1399/1');
     expect(response.status).toBe(200);
     expect(response.body.score).toBe(9);
-    expect(response.body.user.username).toBe('alice');
-    expect(response.body.user.firstName).toBe('Alice');
-    expect(response.body.user.lastName).toBe('Smith');
+    expect(response.body.author.id).toBe(1);
+    expect(response.body.author.displayName).toBe('Alice Smith');
   });
 
   it('returns 404 if user rating not found', async () => {

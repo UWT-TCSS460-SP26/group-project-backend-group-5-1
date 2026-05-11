@@ -1,8 +1,6 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
-import * as moviesService from '../../src/services/movies';
-import * as tvService from '../../src/services/tv';
 import { authHeader } from '../helpers';
 
 jest.mock('../../src/middleware/resolveLocalUser', () => ({
@@ -29,16 +27,6 @@ jest.mock('../../src/lib/prisma', () => ({
   },
 }));
 
-jest.mock('../../src/services/movies', () => ({
-  ...jest.requireActual('../../src/services/movies'),
-  fetchTmdb: jest.fn(),
-}));
-
-jest.mock('../../src/services/tv', () => ({
-  ...jest.requireActual('../../src/services/tv'),
-  fetchTmdb: jest.fn(),
-}));
-
 const mockRating = prisma.rating as jest.Mocked<typeof prisma.rating>;
 const asUser = authHeader({ sub: 1, role: 'User' });
 
@@ -50,6 +38,7 @@ const mockMovieRating = {
   score: 8,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
+  user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
 };
 
 const mockTvRating = {
@@ -60,6 +49,7 @@ const mockTvRating = {
   score: 9,
   createdAt: new Date('2024-01-02'),
   updatedAt: new Date('2024-01-02'),
+  user: { id: 1, username: 'alice', firstName: 'Alice', lastName: 'Smith' },
 };
 
 const otherUserRating = {
@@ -70,20 +60,7 @@ const otherUserRating = {
   score: 5,
   createdAt: new Date('2024-01-03'),
   updatedAt: new Date('2024-01-03'),
-};
-
-const mockMovieTmdb = {
-  id: 550,
-  title: 'Fight Club',
-  poster_path: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
-  overview: 'A ticking-time-bomb insomniac and a slippery soap salesman...',
-};
-
-const mockTvTmdb = {
-  id: 1396,
-  name: 'Breaking Bad',
-  poster_path: '/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-  overview: 'A chemistry teacher diagnosed with cancer...',
+  user: { id: 2, username: 'bob', firstName: 'Bob', lastName: 'Jones' },
 };
 
 beforeEach(() => {
@@ -112,37 +89,35 @@ describe('GET /v1/ratings/me', () => {
     expect(response.body).toEqual([]);
   });
 
-  it('returns enriched movie rating with TMDB metadata', async () => {
+  it('returns a movie rating with correct fields and author', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating]);
-    (moviesService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockMovieTmdb);
 
     const response = await request(app).get('/v1/ratings/me').set(asUser);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(response.body[0]).toHaveProperty('rating');
-    expect(response.body[0]).toHaveProperty('tmdb');
-    expect(response.body[0].rating.score).toBe(8);
-    expect(response.body[0].rating.mediaType).toBe('movie');
-    expect(response.body[0].tmdb.title).toBe('Fight Club');
+    expect(response.body[0].id).toBe(1);
+    expect(response.body[0].mediaId).toBe(550);
+    expect(response.body[0].mediaType).toBe('movie');
+    expect(response.body[0].score).toBe(8);
+    expect(response.body[0].author).toEqual({ id: 1, displayName: 'Alice Smith' });
   });
 
-  it('returns enriched tv rating with TMDB metadata', async () => {
+  it('returns a tv rating with correct fields', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockTvRating]);
-    (tvService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockTvTmdb);
 
     const response = await request(app).get('/v1/ratings/me').set(asUser);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(response.body[0].rating.mediaType).toBe('tv');
-    expect(response.body[0].tmdb.name).toBe('Breaking Bad');
+    expect(response.body[0].mediaType).toBe('tv');
+    expect(response.body[0].mediaId).toBe(1396);
+    expect(response.body[0].score).toBe(9);
+    expect(response.body[0].author).toEqual({ id: 1, displayName: 'Alice Smith' });
   });
 
-  it('returns mixed movie and tv ratings', async () => {
+  it('returns multiple ratings', async () => {
     (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating, mockTvRating]);
-    (moviesService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockMovieTmdb);
-    (tvService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockTvTmdb);
 
     const response = await request(app).get('/v1/ratings/me').set(asUser);
 
@@ -150,26 +125,16 @@ describe('GET /v1/ratings/me', () => {
     expect(response.body).toHaveLength(2);
   });
 
-  it('omits items where TMDB lookup fails', async () => {
-    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating, mockTvRating]);
-    (moviesService.fetchTmdb as jest.Mock).mockRejectedValueOnce(new Error('TMDB error: 404'));
-    (tvService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockTvTmdb);
+  it('only returns ratings for the authenticated user, not another user', async () => {
+    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating]);
 
     const response = await request(app).get('/v1/ratings/me').set(asUser);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
-    expect(response.body[0].rating.mediaType).toBe('tv');
-  });
-
-  it('returns empty array when all TMDB lookups fail', async () => {
-    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating]);
-    (moviesService.fetchTmdb as jest.Mock).mockRejectedValueOnce(new Error('TMDB error: 500'));
-
-    const response = await request(app).get('/v1/ratings/me').set(asUser);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual([]);
+    expect(response.body[0].mediaId).toBe(550);
+    const ids = response.body.map((item: { mediaId: number }) => item.mediaId);
+    expect(ids).not.toContain(otherUserRating.mediaId);
   });
 
   it('returns 500 when prisma query fails', async () => {
@@ -179,20 +144,5 @@ describe('GET /v1/ratings/me', () => {
 
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty('error', 'Failed to fetch rated items');
-  });
-
-  it('only returns ratings for the authenticated user, not another user', async () => {
-    // mock only returns user 1's rating, not user 2's
-    (mockRating.findMany as jest.Mock).mockResolvedValueOnce([mockMovieRating]);
-    (moviesService.fetchTmdb as jest.Mock).mockResolvedValueOnce(mockMovieTmdb);
-
-    const response = await request(app).get('/v1/ratings/me').set(asUser);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0].rating.mediaId).toBe(550);
-    // user 2's rating should not appear
-    const ids = response.body.map((item: { rating: { mediaId: number } }) => item.rating.mediaId);
-    expect(ids).not.toContain(otherUserRating.mediaId);
   });
 });
