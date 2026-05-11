@@ -25,7 +25,7 @@ tags:
   - name: Reviews
     description: User reviews for movies and TV shows.
   - name: Issues
-    description: Public bug report submission endpoints.
+    description: Bug report submission (public) and issue management (Admin+).
 
 paths:
   /health:
@@ -458,20 +458,23 @@ paths:
   /v1/ratings/{mediaType}/{mediaId}:
     get:
       tags: [Ratings]
-      summary: Get all ratings for a TMDB media item
-      description: Returns all ratings for a given TMDB media type and ID.
+      summary: Get all ratings for a media item
+      description: Returns all ratings for a given media type and ID.
       parameters:
         - name: mediaType
           in: path
           required: true
           schema:
             type: string
-            enum: [movie, tv]
+            enum: [movie, tv, book]
+          example: movie
         - name: mediaId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 550
       responses:
         '200':
           description: List of ratings
@@ -487,6 +490,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid mediaId
         '500':
           description: Internal server error
           content:
@@ -497,25 +502,30 @@ paths:
   /v1/ratings/{mediaType}/{mediaId}/{userId}:
     get:
       tags: [Ratings]
-      summary: Get a user's rating for a TMDB media item
-      description: Returns the rating for a specific user on a TMDB media item.
+      summary: Get a user's rating for a media item
+      description: Returns the rating a specific user gave to a specific media item.
       parameters:
         - name: mediaType
           in: path
           required: true
           schema:
             type: string
-            enum: [movie, tv]
+            enum: [movie, tv, book]
+          example: movie
         - name: mediaId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 550
         - name: userId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 1
       responses:
         '200':
           description: Rating found
@@ -523,19 +533,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Rating'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidMediaId:
+                  summary: Non-integer mediaId
+                  value:
+                    error: Invalid mediaId
+                invalidUserId:
+                  summary: Non-integer userId
+                  value:
+                    error: Invalid userId
         '404':
           description: Rating not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: Rating not found
 
   /v1/ratings:
     post:
       tags: [Ratings]
       summary: Create a rating
       description: >
-        Creates a new rating for a TMDB item for the authenticated user.
+        Creates a new rating for the authenticated user.
         If the user already has a review for the same media item without a linked rating,
         that review's `ratingId` is automatically updated to reference the new rating.
         Returns 409 if the user has already rated this item.
@@ -554,10 +581,11 @@ paths:
               properties:
                 mediaId:
                   type: integer
+                  minimum: 0
                   example: 550
                 mediaType:
                   type: string
-                  enum: [movie, tv]
+                  enum: [movie, tv, book]
                   example: movie
                 score:
                   type: integer
@@ -577,6 +605,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Required fields missing
+                  value:
+                    error: mediaId, mediaType, and score are required
+                invalidMediaId:
+                  summary: mediaId is not an integer
+                  value:
+                    error: mediaId must be an integer
+                negativeMediaId:
+                  summary: mediaId is negative
+                  value:
+                    error: mediaId must not be negative
+                invalidScore:
+                  summary: Score out of range
+                  value:
+                    error: score must be a number between 1 and 10
+                invalidMediaType:
+                  summary: Unknown mediaType
+                  value:
+                    error: 'mediaType must be one of: movie, tv, book'
         '401':
           description: Unauthorized — JWT required
           content:
@@ -589,8 +638,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: You have already rated this item. Use PUT to update your rating.
 
-  /v1/ratings/{ratingId}:
+  /v1/ratings/{id}:
     put:
       tags: [Ratings]
       summary: Update a rating
@@ -599,10 +650,12 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: ratingId
+          name: id
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 42
       requestBody:
         required: true
         content:
@@ -630,6 +683,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: score must be a number between 1 and 10
         '401':
           description: Unauthorized
           content:
@@ -658,10 +713,12 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: ratingId
+          name: id
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 42
       responses:
         '204':
           description: Rating deleted
@@ -687,20 +744,23 @@ paths:
   /v1/reviews/{mediaType}/{mediaId}:
     get:
       tags: [Reviews]
-      summary: Get all reviews for a TMDB media item
-      description: Returns all reviews for a given TMDB media type and ID.
+      summary: Get all reviews for a media item
+      description: Returns all reviews for a given media type and ID.
       parameters:
         - name: mediaType
           in: path
           required: true
           schema:
             type: string
-            enum: [movie, tv]
+            enum: [movie, tv, book]
+          example: movie
         - name: mediaId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 550
       responses:
         '200':
           description: List of reviews
@@ -716,6 +776,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid mediaId
         '500':
           description: Internal server error
           content:
@@ -726,25 +788,30 @@ paths:
   /v1/reviews/{mediaType}/{mediaId}/{userId}:
     get:
       tags: [Reviews]
-      summary: Get a user's review for a TMDB media item
-      description: Returns the review for a specific user on a TMDB media item.
+      summary: Get a user's review for a media item
+      description: Returns the review a specific user wrote for a specific media item.
       parameters:
         - name: mediaType
           in: path
           required: true
           schema:
             type: string
-            enum: [movie, tv]
+            enum: [movie, tv, book]
+          example: movie
         - name: mediaId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 550
         - name: userId
           in: path
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 1
       responses:
         '200':
           description: Review found
@@ -752,12 +819,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidMediaId:
+                  summary: Non-integer mediaId
+                  value:
+                    error: Invalid mediaId
+                invalidUserId:
+                  summary: Non-integer userId
+                  value:
+                    error: Invalid userId
         '404':
           description: Review not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: Review not found
 
   /v1/reviews:
     post:
@@ -766,7 +850,8 @@ paths:
       description: >
         Creates a new review for the authenticated user. Do not supply `ratingId` in the request body —
         if the user already has a rating for the same media item, it is automatically linked.
-        If no rating exists yet, `ratingId` will be null and can be linked later by creating a rating.
+        If no rating exists yet, `ratingId` will be null and is linked automatically when a rating is later created.
+        Returns 409 if the user has already reviewed this item.
       security:
         - bearerAuth: []
       requestBody:
@@ -782,10 +867,11 @@ paths:
               properties:
                 mediaId:
                   type: integer
+                  minimum: 0
                   example: 550
                 mediaType:
                   type: string
-                  enum: [movie, tv]
+                  enum: [movie, tv, book]
                   example: movie
                 body:
                   type: string
@@ -803,6 +889,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              examples:
+                missingFields:
+                  summary: Required fields missing
+                  value:
+                    error: mediaId, mediaType, and body are required
+                invalidMediaId:
+                  summary: mediaId is not an integer
+                  value:
+                    error: mediaId must be an integer
+                negativeMediaId:
+                  summary: mediaId is negative
+                  value:
+                    error: mediaId must not be negative
         '401':
           description: Unauthorized — JWT required
           content:
@@ -815,6 +914,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: You have already reviewed this item. Use PUT to update your review.
 
   /v1/reviews/{id}:
     put:
@@ -829,6 +930,8 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 7
       requestBody:
         required: true
         content:
@@ -884,6 +987,8 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 7
       responses:
         '204':
           description: Review deleted
@@ -909,8 +1014,8 @@ paths:
   /v1/reviews/admin/{id}:
     delete:
       tags: [Reviews]
-      summary: Delete a review (admin)
-      description: Deletes any review as an administrator.
+      summary: Delete a review (Admin)
+      description: Deletes any review as an administrator. Requires the Admin role or higher.
       security:
         - bearerAuth: []
       parameters:
@@ -919,6 +1024,8 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 0
+          example: 7
       responses:
         '204':
           description: Review deleted
@@ -929,7 +1036,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden — admin role required
+          description: Forbidden — Admin role required
           content:
             application/json:
               schema:
@@ -944,7 +1051,7 @@ paths:
   /v1/issues:
     post:
       tags: [Issues]
-      summary: Submit a public bug report
+      summary: Submit a bug report
       description: Accepts a visitor bug report and persists it as an issue. No auth required.
       requestBody:
         required: true
@@ -960,13 +1067,275 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssueSubmissionResponse'
         '400':
-          description: Validation failure
+          description: Validation failure — at least one of title or description is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWithDetails'
+              example:
+                error: Invalid bug report
+                details:
+                  - A title or description is required
+        '500':
+          description: Failed to save bug report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags: [Issues]
+      summary: List all issues (Admin)
+      description: >
+        Returns a paginated list of all submitted issues. Requires Admin role or higher.
+        Results can be filtered by status and sorted by creation date.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-based).
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Number of results per page. Maximum 100.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: status
+          in: query
+          description: Comma-separated list of statuses to filter by. Allowed values — Open, InProgress, Resolved, Closed.
+          required: false
+          schema:
+            type: string
+          example: 'Open,InProgress'
+        - name: sort
+          in: query
+          description: Sort order by creation date. Defaults to newest.
+          required: false
+          schema:
+            type: string
+            enum: [newest, oldest]
+            default: newest
+          example: newest
+      responses:
+        '200':
+          description: Paginated list of issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueListResponse'
+        '400':
+          description: Invalid status filter value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWithDetails'
+              example:
+                error: Invalid status value(s)
+                details: 'Unknown: Pending. Allowed: Open, InProgress, Resolved, Closed'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — Admin role required
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Failed to save bug report
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/issues/{id}:
+    get:
+      tags: [Issues]
+      summary: Get an issue by ID (Admin)
+      description: Returns a single issue by its ID. Requires Admin role or higher.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 12
+      responses:
+        '200':
+          description: Issue found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: Invalid issue ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid issue id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Issue not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: [Issues]
+      summary: Update an issue's status (Admin)
+      description: >
+        Partially updates an issue. Only the `status` field is accepted.
+        Requires Admin role or higher.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [Open, InProgress, Resolved, Closed]
+                  example: InProgress
+      responses:
+        '200':
+          description: Issue updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: Missing or invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingStatus:
+                  summary: No status field provided
+                  value:
+                    error: Request body must include a status field
+                invalidStatus:
+                  summary: Unknown status value
+                  value:
+                    error: Invalid status value
+                    details: 'Allowed values: Open, InProgress, Resolved, Closed'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: [Issues]
+      summary: Delete an issue (Admin)
+      description: Permanently deletes an issue. Requires Admin role or higher.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 12
+      responses:
+        '204':
+          description: Issue deleted
+        '400':
+          description: Invalid issue ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1309,14 +1678,22 @@ components:
       properties:
         id:
           type: integer
+          example: 42
         userId:
           type: integer
+          example: 1
         mediaId:
           type: integer
+          example: 550
         mediaType:
           type: string
+          enum: [movie, tv, book]
+          example: movie
         score:
           type: integer
+          minimum: 1
+          maximum: 10
+          example: 8
         createdAt:
           type: string
           format: date-time
@@ -1336,17 +1713,24 @@ components:
       properties:
         id:
           type: integer
+          example: 7
         userId:
           type: integer
+          example: 1
         mediaId:
           type: integer
+          example: 550
+        mediaType:
+          type: string
+          enum: [movie, tv, book]
+          example: movie
         ratingId:
           type: integer
           nullable: true
-        mediaType:
-          type: string
+          example: 42
         body:
           type: string
+          example: 'This movie was incredible!'
         createdAt:
           type: string
           format: date-time
@@ -1360,6 +1744,65 @@ components:
               type: integer
             email:
               type: string
+
+    Issue:
+      type: object
+      description: A full issue record as stored in the database.
+      properties:
+        id:
+          type: integer
+          example: 12
+        title:
+          type: string
+          nullable: true
+          example: Unable to load movie list
+        description:
+          type: string
+          nullable: true
+          example: The discovery endpoint returns 500 when date filters are applied.
+        reproSteps:
+          type: string
+          nullable: true
+          example: '1. GET /v1/movies?primary_release_date_gte=2020-01-01'
+        reporter:
+          type: string
+          nullable: true
+          example: alice@example.com
+        status:
+          type: string
+          enum: [Open, InProgress, Resolved, Closed]
+          example: Open
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    IssueListResponse:
+      type: object
+      description: Paginated list of issues returned by the admin list endpoint.
+      properties:
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        total:
+          type: integer
+          description: Total number of issues matching the filter.
+          example: 57
+        page:
+          type: integer
+          description: Current page number.
+          example: 1
+        limit:
+          type: integer
+          description: Number of results per page.
+          example: 20
+        pages:
+          type: integer
+          description: Total number of pages.
+          example: 3
 
     IssueSubmission:
       type: object
@@ -1405,4 +1848,22 @@ components:
         error:
           type: string
           description: A human-readable error message.
-          example: Movie with id 99999 not found
+          example: Not found
+
+    ErrorWithDetails:
+      type: object
+      description: Error response that includes an additional details field for structured validation feedback.
+      properties:
+        error:
+          type: string
+          description: A human-readable error message.
+          example: Invalid bug report
+        details:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Additional context — either a plain string or a list of specific validation errors.
+          example:
+            - A title or description is required

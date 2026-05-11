@@ -151,6 +151,11 @@ describe('GET /v1/ratings/movie/:mediaId', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(0);
   });
+
+  it('returns 404 for a negative mediaId', async () => {
+    const response = await request(app).get('/v1/ratings/movie/-1');
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('GET /v1/ratings/movie/:mediaId/:userId', () => {
@@ -172,9 +177,24 @@ describe('GET /v1/ratings/movie/:mediaId/:userId', () => {
     const response = await request(app).get('/v1/ratings/movie/120/99');
     expect(response.status).toBe(404);
   });
+
+  it('returns 404 for a negative mediaId', async () => {
+    const response = await request(app).get('/v1/ratings/movie/-5/1');
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 for a negative userId', async () => {
+    const response = await request(app).get('/v1/ratings/movie/120/-3');
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('PUT /v1/ratings/:id', () => {
+  it('returns 404 for a negative rating id', async () => {
+    const response = await request(app).put('/v1/ratings/-1').set(asUser).send({ score: 9 });
+    expect(response.status).toBe(404);
+  });
+
   it('updates a rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,
@@ -216,6 +236,11 @@ describe('PUT /v1/ratings/:id', () => {
 });
 
 describe('DELETE /v1/ratings/:id', () => {
+  it('returns 404 for a negative rating id', async () => {
+    const response = await request(app).delete('/v1/ratings/-1').set(asUser);
+    expect(response.status).toBe(404);
+  });
+
   it('deletes a rating with valid token', async () => {
     (mockRating.findUnique as jest.Mock).mockResolvedValueOnce({
       id: 1,

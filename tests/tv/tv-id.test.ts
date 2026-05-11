@@ -106,6 +106,12 @@ describe('GET /v1/tv/:id', () => {
     expect(response.body.error).toBe('TV id must be a positive integer');
   });
 
+  it('returns 404 for a negative id', async () => {
+    const response = await request(app).get('/v1/tv/-1');
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('TV show with id -1 not found');
+  });
+
   it('returns 404 when id is not found', async () => {
     const notFoundError = Object.assign(new Error('TMDB error: 404 Not Found'), { status: 404 });
     (tvService.fetchTmdb as jest.Mock).mockRejectedValue(notFoundError);

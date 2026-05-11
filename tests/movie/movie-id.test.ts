@@ -133,6 +133,12 @@ describe('GET /v1/movies/:id', () => {
     expect(res.body.error).toBe('Movie id must be a positive integer');
   });
 
+  it('returns 404 for a negative id', async () => {
+    const res = await request(app).get('/v1/movies/-1');
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('Movie with id -1 not found');
+  });
+
   it('returns 404 when movie is not found', async () => {
     const notFoundError = Object.assign(new Error('TMDB error: 404 Not Found'), { status: 404 });
     (movieService.fetchTmdb as jest.Mock).mockRejectedValue(notFoundError);

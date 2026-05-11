@@ -77,8 +77,13 @@ export const validateMovieId = (req: Request, res: Response, next: NextFunction)
 
   const parsed = parseInt(id, 10);
 
-  if (isNaN(parsed) || parsed < 1) {
+  if (isNaN(parsed) || parsed === 0) {
     res.status(400).json({ error: 'Movie id must be a positive integer' });
+    return;
+  }
+
+  if (parsed < 0) {
+    res.status(404).json({ error: `Movie with id ${id} not found` });
     return;
   }
 

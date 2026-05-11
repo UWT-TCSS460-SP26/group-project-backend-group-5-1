@@ -42,10 +42,20 @@ app.use((_request: Request, response: Response) => {
 });
 
 // Global error handler — catches next(err) from any middleware
-
-app.use((err: Error, _request: Request, response: Response, _next: NextFunction) => {
-  console.error(err);
-  response.status(500).json({ error: 'Internal server error' });
-});
+app.use(
+  (
+    err: Error & { type?: string; status?: number },
+    _request: Request,
+    response: Response,
+    _next: NextFunction
+  ) => {
+    if (err.type === 'entity.parse.failed' || err.status === 400) {
+      response.status(400).json({ error: 'Invalid JSON in request body' });
+      return;
+    }
+    console.error(err);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+);
 
 export { app };

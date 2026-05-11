@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import { IssueStatus } from '@prisma/client';
+
+const VALID_STATUSES = ['Open', 'InProgress', 'Resolved', 'Closed'] as const;
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 
@@ -77,6 +80,134 @@ type IssueRow = {
   id: number;
   status: 'Open' | 'InProgress' | 'Resolved' | 'Closed';
   createdAt: Date;
+};
+
+function parsePositiveInt(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : fallback;
+}
+
+/** GET /issues — admin: paginated list with optional status filter and sort */
+export const listIssues = async (req: Request, res: Response): Promise<void> => {
+  const page = parsePositiveInt(req.query.page, 1);
+  const limit = Math.min(parsePositiveInt(req.query.limit, 20), 100);
+  const sort = req.query.sort === 'oldest' ? 'asc' : 'desc';
+
+  let statusFilter: IssueStatus[] | undefined;
+  if (req.query.status) {
+    const raw = String(req.query.status)
+      .split(',')
+      .map((s) => s.trim());
+    const invalid = raw.filter((s) => !VALID_STATUSES.includes(s as IssueStatus));
+    if (invalid.length > 0) {
+      res.status(400).json({
+        error: 'Invalid status value(s)',
+        details: `Unknown: ${invalid.join(', ')}. Allowed: ${VALID_STATUSES.join(', ')}`,
+      });
+      return;
+    }
+    statusFilter = raw as IssueStatus[];
+  }
+
+  try {
+    const where = statusFilter ? { status: { in: statusFilter } } : {};
+    const [issues, total] = await Promise.all([
+      prisma.issue.findMany({
+        where,
+        orderBy: { createdAt: sort },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.issue.count({ where }),
+    ]);
+
+    res.json({
+      issues,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch issues' });
+  }
+};
+
+/** GET /issues/:id — admin: single issue detail */
+export const getIssueById = async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: 'Invalid issue id' });
+    return;
+  }
+
+  try {
+    const issue = await prisma.issue.findUnique({ where: { id } });
+    if (!issue) {
+      res.status(404).json({ error: 'Issue not found' });
+      return;
+    }
+    res.json(issue);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch issue' });
+  }
+};
+
+/** PATCH /issues/:id — admin: update status only (partial update) */
+export const updateIssue = async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: 'Invalid issue id' });
+    return;
+  }
+
+  const { status } = req.body ?? {};
+  if (status === undefined) {
+    res.status(400).json({ error: 'Request body must include a status field' });
+    return;
+  }
+  if (!VALID_STATUSES.includes(status as IssueStatus)) {
+    res.status(400).json({
+      error: 'Invalid status value',
+      details: `Allowed values: ${VALID_STATUSES.join(', ')}`,
+    });
+    return;
+  }
+
+  try {
+    const existing = await prisma.issue.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Issue not found' });
+      return;
+    }
+
+    const updated = await prisma.issue.update({ where: { id }, data: { status } });
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Failed to update issue' });
+  }
+};
+
+/** DELETE /issues/:id — admin: remove an issue; returns 204 No Content */
+export const deleteIssue = async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: 'Invalid issue id' });
+    return;
+  }
+
+  try {
+    const existing = await prisma.issue.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Issue not found' });
+      return;
+    }
+
+    await prisma.issue.delete({ where: { id } });
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: 'Failed to delete issue' });
+  }
 };
 
 export const createIssue = async (req: Request, res: Response): Promise<void> => {

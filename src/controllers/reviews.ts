@@ -5,6 +5,11 @@ function getUserId(req: Request): number {
   return req.localUser!.id;
 }
 
+function parseId(raw: string): number | null {
+  const n = Number(raw);
+  return isNaN(n) || !Number.isInteger(n) ? null : n;
+}
+
 export async function createReview(req: Request, res: Response) {
   try {
     const { mediaId, mediaType, body } = req.body;
@@ -14,8 +19,13 @@ export async function createReview(req: Request, res: Response) {
       return res.status(400).json({ error: 'mediaId, mediaType, and body are required' });
     }
 
+    const mediaIdNum = Number(mediaId);
+    if (!Number.isInteger(mediaIdNum)) {
+      return res.status(400).json({ error: 'mediaId must be an integer' });
+    }
+
     const existing = await prisma.review.findFirst({
-      where: { userId, mediaId: Number(mediaId) },
+      where: { userId, mediaId: mediaIdNum },
     });
 
     if (existing) {
@@ -25,16 +35,16 @@ export async function createReview(req: Request, res: Response) {
     }
 
     const existingRating = await prisma.rating.findUnique({
-      where: { userId_mediaId: { userId, mediaId: Number(mediaId) } },
+      where: { userId_mediaId: { userId, mediaId: mediaIdNum } },
     });
 
     const review = await prisma.review.create({
       data: {
         userId,
         mediaType,
-        mediaId: Number(mediaId),
+        mediaId: mediaIdNum,
         body,
-        ratingId: existingRating?.id ?? undefined,
+        ratingId: existingRating?.id ?? null,
       },
     });
 
@@ -108,9 +118,12 @@ export async function getReviewsForItem(req: Request, res: Response) {
     const mediaType = req.params.mediaType as string;
     const mediaId = req.params.mediaId as string;
 
+    const mediaIdNum = parseId(mediaId);
+    if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
+
     const reviews = await prisma.review.findMany({
       where: {
-        mediaId: Number(mediaId),
+        mediaId: mediaIdNum,
         mediaType,
       },
       include: {
@@ -131,11 +144,16 @@ export async function getReviewByUser(req: Request, res: Response) {
     const mediaId = req.params.mediaId as string;
     const userId = req.params.userId as string;
 
+    const mediaIdNum = parseId(mediaId);
+    if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
+    const userIdNum = parseId(userId);
+    if (userIdNum === null) return res.status(400).json({ error: 'Invalid userId' });
+
     const review = await prisma.review.findFirst({
       where: {
-        userId: Number(userId),
+        userId: userIdNum,
         mediaType,
-        mediaId: Number(mediaId),
+        mediaId: mediaIdNum,
       },
       include: {
         user: { select: { id: true, email: true } },

@@ -27,6 +27,11 @@ export async function createRating(req: Request, res: Response) {
       return res.status(400).json({ error: 'mediaId, mediaType, and score are required' });
     }
 
+    const mediaIdNum = Number(mediaId);
+    if (!Number.isInteger(mediaIdNum)) {
+      return res.status(400).json({ error: 'mediaId must be an integer' });
+    }
+
     if (!isValidMediaType(mediaType)) {
       return res
         .status(400)
@@ -38,7 +43,7 @@ export async function createRating(req: Request, res: Response) {
     }
 
     const existing = await prisma.rating.findFirst({
-      where: { userId, mediaId: Number(mediaId), mediaType },
+      where: { userId, mediaId: mediaIdNum, mediaType },
     });
 
     if (existing) {
@@ -48,15 +53,15 @@ export async function createRating(req: Request, res: Response) {
     }
 
     const created = await prisma.rating.create({
-      data: { userId, mediaId: Number(mediaId), mediaType, score },
+      data: { userId, mediaId: mediaIdNum, mediaType, score },
     });
 
     const orphan = await prisma.review.findFirst({
-      where: { userId, mediaId: Number(mediaId), rating: { isNot: {} } },
+      where: { userId, mediaId: mediaIdNum, rating: { isNot: {} } },
     });
     if (orphan) {
       await prisma.review.update({
-        where: { userId_mediaId: { userId, mediaId: Number(mediaId) } },
+        where: { userId_mediaId: { userId, mediaId: mediaIdNum } },
         data: { ratingId: created.id },
       });
     }
@@ -167,11 +172,16 @@ export async function getRatingByUser(req: Request, res: Response) {
     const mediaId = req.params.mediaId as string;
     const userId = req.params.userId as string;
 
+    const mediaIdNum = parseId(mediaId);
+    if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
+    const userIdNum = parseId(userId);
+    if (userIdNum === null) return res.status(400).json({ error: 'Invalid userId' });
+
     const rating = await prisma.rating.findFirst({
       where: {
-        userId: Number(userId),
+        userId: userIdNum,
         mediaType,
-        mediaId: Number(mediaId),
+        mediaId: mediaIdNum,
       },
       include: {
         user: { select: { id: true, email: true } },
