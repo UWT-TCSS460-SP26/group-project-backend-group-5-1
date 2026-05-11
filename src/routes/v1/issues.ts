@@ -6,7 +6,8 @@ import {
   updateIssue,
   deleteIssue,
 } from '../../controllers/issues';
-import { requireAuth, requireRoleAtLeast } from '../../middleware/requireAuth';
+import { requireAuth, requireLocalRole } from '../../middleware/requireAuth';
+import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 import { requireNonNegativeIds } from '../../middleware/validateId';
 
 /**
@@ -28,25 +29,28 @@ const issuesRouter = Router();
 
 issuesRouter.post('/', createIssue);
 
-issuesRouter.get('/', requireAuth, requireRoleAtLeast('Admin'), listIssues);
+issuesRouter.get('/', requireAuth, resolveLocalUser, requireLocalRole('Admin'), listIssues);
 issuesRouter.get(
   '/:id',
   requireAuth,
-  requireRoleAtLeast('Admin'),
+  resolveLocalUser,
+  requireLocalRole('Admin'),
   requireNonNegativeIds('id'),
   getIssueById
 );
 issuesRouter.patch(
   '/:id',
   requireAuth,
-  requireRoleAtLeast('Admin'),
+  resolveLocalUser,
+  requireLocalRole('Admin'),
   requireNonNegativeIds('id'),
   updateIssue
 );
 issuesRouter.delete(
   '/:id',
   requireAuth,
-  requireRoleAtLeast('Admin'),
+  resolveLocalUser,
+  requireLocalRole('Admin'),
   requireNonNegativeIds('id'),
   deleteIssue
 );

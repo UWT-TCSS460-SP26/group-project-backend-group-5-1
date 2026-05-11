@@ -3,6 +3,22 @@ import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { authHeader } from '../helpers';
 
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: jest.fn(
+    (
+      req: import('express').Request,
+      _res: import('express').Response,
+      next: import('express').NextFunction
+    ) => {
+      if (req.user) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (req as any).localUser = { id: Number(req.user.sub), role: req.user.role };
+      }
+      next();
+    }
+  ),
+}));
+
 jest.mock('../../src/lib/prisma', () => ({
   prisma: {
     $queryRaw: jest.fn(),

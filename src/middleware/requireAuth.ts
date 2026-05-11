@@ -121,3 +121,19 @@ export const hasRoleAtLeast = (role: Role | undefined, minRole: Role): boolean =
   const minIdx = ROLE_HIERARCHY.indexOf(minRole);
   return userIdx >= 0 && userIdx >= minIdx;
 };
+
+export const requireLocalRole = (minRole: Role): RequestHandler => {
+  const minIdx = ROLE_HIERARCHY.indexOf(minRole);
+  return (request: Request, response: Response, next: NextFunction): void => {
+    if (!request.localUser) {
+      response.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+    const userIdx = ROLE_HIERARCHY.indexOf(request.localUser.role as Role);
+    if (userIdx < 0 || userIdx < minIdx) {
+      response.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
+    next();
+  };
+};
