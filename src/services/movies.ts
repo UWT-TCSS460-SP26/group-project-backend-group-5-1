@@ -43,7 +43,7 @@ const parseMovieQuery = (
   query: MovieQueryParams
 ): { path: string; params: Record<string, string | undefined> } => {
   const {
-    query: queryParam,
+    q,
     primary_release_date_gte,
     primary_release_date_lte,
     with_genres,
@@ -52,13 +52,13 @@ const parseMovieQuery = (
     language,
   } = query;
 
-  const isTextSearch = typeof queryParam === 'string' && queryParam.trim().length > 0;
+  const isTextSearch = typeof q === 'string' && q.trim().length > 0;
 
   if (isTextSearch) {
     return {
       path: '/search/movie',
       params: {
-        query: queryParam as string,
+        query: q as string,
         language: language as string | undefined,
       },
     };

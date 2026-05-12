@@ -24,7 +24,7 @@ interface TmdbError extends Error {
 }
 
 interface MovieQueryParams {
-  query?: string | ParsedQs;
+  q?: string | ParsedQs;
   primary_release_date_gte?: string | ParsedQs;
   primary_release_date_lte?: string | ParsedQs;
   with_genres?: string | ParsedQs;

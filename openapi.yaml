@@ -62,7 +62,7 @@ paths:
         text search via TMDB's search endpoint. Otherwise, uses TMDB's discover
         endpoint with the provided filter parameters.
       parameters:
-        - name: query
+        - name: q
           in: query
           description: Text search query (e.g. "spiderman"). When provided, all filter parameters are ignored.
           required: false
