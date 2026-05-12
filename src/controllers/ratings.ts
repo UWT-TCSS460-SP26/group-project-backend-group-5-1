@@ -228,9 +228,20 @@ export async function getMyRatedItems(req: Request, res: Response) {
     const ratings = await prisma.rating.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, username: true, firstName: true, lastName: true } } },
+      include: {
+        user: { select: { id: true, username: true, firstName: true, lastName: true } },
+        review: { select: { id: true } },
+      },
     });
-    return res.json(ratings.map((r) => serializeRating(r as RatingWithUser)));
+    return res.json(
+      ratings.map((r) => {
+        const { review, ...ratingWithoutReview } = r;
+        return {
+          ...serializeRating(ratingWithoutReview as RatingWithUser),
+          reviewId: review?.id ?? null,
+        };
+      })
+    );
   } catch (_err) {
     return res.status(500).json({ error: 'Failed to fetch rated items' });
   }
