@@ -1412,6 +1412,18 @@ paths:
                   score: 8
                   createdAt: '2024-01-01T00:00:00.000Z'
                   updatedAt: '2024-01-01T00:00:00.000Z'
+                  reviewId: 3
+                  author:
+                    id: 1
+                    displayName: Alice Smith
+                - id: 2
+                  userId: 1
+                  mediaId: 278
+                  mediaType: movie
+                  score: 10
+                  createdAt: '2024-02-01T00:00:00.000Z'
+                  updatedAt: '2024-02-01T00:00:00.000Z'
+                  reviewId: null
                   author:
                     id: 1
                     displayName: Alice Smith
@@ -1886,6 +1898,11 @@ components:
         updatedAt:
           type: string
           format: date-time
+        reviewId:
+          type: integer
+          nullable: true
+          description: ID of the linked review, if one exists
+          example: 3
         author:
           type: object
           properties:
