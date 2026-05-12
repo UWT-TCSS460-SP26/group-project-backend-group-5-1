@@ -1452,9 +1452,16 @@ paths:
                   community_rating: 9.2
                   community_rating_count: 15
                   tmdb:
-                    id: 550
                     title: Fight Club
                     poster_path: /pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg
+                    backdrop_path: /fCayJrkfRaCRCTh8GqN30f8oyQF.jpg
+                    overview: >-
+                      A ticking-time-bomb insomniac and a slippery soap salesman channel
+                      primal male aggression into a brawling underground club.
+                    genres:
+                      - id: 18
+                        name: Drama
+                    release_date: '1999-10-15'
         '500':
           description: Internal server error
           content:
@@ -1485,9 +1492,18 @@ paths:
                   community_rating: 8.8
                   community_rating_count: 42
                   tmdb:
-                    id: 1396
                     name: Breaking Bad
                     poster_path: /ggFHVNu6YYI5L9pCfOacjizRGt.jpg
+                    backdrop_path: /tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg
+                    overview: >-
+                      When Walter White, a New Mexico chemistry teacher diagnosed with cancer,
+                      turns to manufacturing methamphetamine to secure his family's future.
+                    genres:
+                      - id: 18
+                        name: Drama
+                      - id: 80
+                        name: Crime
+                    first_air_date: '2008-01-20'
         '500':
           description: Internal server error
           content:
@@ -2048,6 +2064,72 @@ components:
             - $ref: '#/components/schemas/MovieDetail'
             - $ref: '#/components/schemas/TvDetail'
 
+    MovieTmdbSummary:
+      type: object
+      description: Trimmed TMDB movie metadata returned by the discovery endpoints.
+      properties:
+        title:
+          type: string
+          example: Fight Club
+        poster_path:
+          type: string
+          nullable: true
+          example: /pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg
+        backdrop_path:
+          type: string
+          nullable: true
+          example: /fCayJrkfRaCRCTh8GqN30f8oyQF.jpg
+        overview:
+          type: string
+          example: A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a brawling underground club.
+        genres:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+          example: [{ id: 18, name: Drama }]
+        release_date:
+          type: string
+          format: date
+          example: '1999-10-15'
+
+    TvTmdbSummary:
+      type: object
+      description: Trimmed TMDB TV show metadata returned by the discovery endpoints.
+      properties:
+        name:
+          type: string
+          example: Breaking Bad
+        poster_path:
+          type: string
+          nullable: true
+          example: /ggFHVNu6YYI5L9pCfOacjizRGt.jpg
+        backdrop_path:
+          type: string
+          nullable: true
+          example: /tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg
+        overview:
+          type: string
+          example: A chemistry teacher diagnosed with cancer turns to manufacturing drugs to secure his family's future.
+        genres:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+          example: [{ id: 18, name: Drama }]
+        first_air_date:
+          type: string
+          format: date
+          example: '2008-01-20'
+
     DiscoveryItem:
       type: object
       description: An aggregated community result enriched with TMDB metadata.
@@ -2068,11 +2150,11 @@ components:
           type: integer
           example: 15
         tmdb:
-          description: TMDB metadata for this item.
+          description: Trimmed TMDB metadata for this item. Null if the TMDB lookup failed.
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/MovieDetail'
-            - $ref: '#/components/schemas/TvDetail'
+            - $ref: '#/components/schemas/MovieTmdbSummary'
+            - $ref: '#/components/schemas/TvTmdbSummary'
 
     Error:
       type: object
