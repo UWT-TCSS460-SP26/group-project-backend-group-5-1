@@ -7,11 +7,47 @@ const MIN_RATING_COUNT = 10;
 
 type MediaType = 'movie' | 'tv';
 
-async function enrichWithTmdb(mediaId: number, mediaType: MediaType) {
+interface MovieTmdbSummary {
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  overview: string;
+  genres: { id: number; name: string }[];
+  release_date: string;
+}
+
+interface TvTmdbSummary {
+  name: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  overview: string;
+  genres: { id: number; name: string }[];
+  first_air_date: string;
+}
+
+type TmdbSummary = MovieTmdbSummary | TvTmdbSummary;
+
+async function enrichWithTmdb(mediaId: number, mediaType: MediaType): Promise<TmdbSummary> {
   if (mediaType === 'movie') {
-    return fetchMovieTmdb(`/movie/${mediaId}`);
+    const data = (await fetchMovieTmdb(`/movie/${mediaId}`)) as unknown as Record<string, unknown>;
+    return {
+      title: data['title'] as string,
+      poster_path: (data['poster_path'] as string | null) ?? null,
+      backdrop_path: (data['backdrop_path'] as string | null) ?? null,
+      overview: (data['overview'] as string) ?? '',
+      genres: (data['genres'] as { id: number; name: string }[]) ?? [],
+      release_date: (data['release_date'] as string) ?? '',
+    };
   }
-  return fetchTvTmdb(`/tv/${mediaId}`);
+  const data = (await fetchTvTmdb(`/tv/${mediaId}`)) as unknown as Record<string, unknown>;
+  return {
+    name: data['name'] as string,
+    poster_path: (data['poster_path'] as string | null) ?? null,
+    backdrop_path: (data['backdrop_path'] as string | null) ?? null,
+    overview: (data['overview'] as string) ?? '',
+    genres: (data['genres'] as { id: number; name: string }[]) ?? [],
+    first_air_date: (data['first_air_date'] as string) ?? '',
+  };
 }
 
 /**
