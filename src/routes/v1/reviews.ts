@@ -11,8 +11,13 @@ import {
 import { requireAuth, requireRole, requireRoleAtLeast } from '../../middleware/requireAuth';
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 import { requireNonNegativeIds, requireNonNegativeBodyIds } from '../../middleware/validateId';
+import { validateIntParam } from '../../middleware/validateIntParams';
 
 const reviewsRouter = Router();
+
+reviewsRouter.param('id', validateIntParam('id'));
+reviewsRouter.param('mediaId', validateIntParam('mediaId'));
+reviewsRouter.param('userId', validateIntParam('userId'));
 
 // Authenticated user routes
 reviewsRouter.get('/me', requireAuth, requireRoleAtLeast('User'), resolveLocalUser, getMyReviews);

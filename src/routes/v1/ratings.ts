@@ -10,8 +10,13 @@ import {
 import { requireAuth, requireRoleAtLeast } from '../../middleware/requireAuth';
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 import { requireNonNegativeIds, requireNonNegativeBodyIds } from '../../middleware/validateId';
+import { validateIntParam } from '../../middleware/validateIntParams';
 
 const ratingsRouter = Router();
+
+ratingsRouter.param('id', validateIntParam('id'));
+ratingsRouter.param('mediaId', validateIntParam('mediaId'));
+ratingsRouter.param('userId', validateIntParam('userId'));
 
 // PROTECTED self-list — must be before /:mediaType/:mediaId to avoid param conflict
 ratingsRouter.get(

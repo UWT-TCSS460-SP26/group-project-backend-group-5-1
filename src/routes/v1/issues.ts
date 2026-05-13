@@ -9,6 +9,7 @@ import {
 import { requireAuth, requireLocalRole } from '../../middleware/requireAuth';
 import { resolveLocalUser } from '../../middleware/resolveLocalUser';
 import { requireNonNegativeIds } from '../../middleware/validateId';
+import { validateIntParam } from '../../middleware/validateIntParams';
 
 /**
  * Issues route contract
@@ -26,6 +27,8 @@ import { requireNonNegativeIds } from '../../middleware/validateId';
  */
 
 const issuesRouter = Router();
+
+issuesRouter.param('id', validateIntParam('id'));
 
 issuesRouter.post('/', createIssue);
 
