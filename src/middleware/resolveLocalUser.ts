@@ -55,7 +55,7 @@ export async function resolveLocalUser(
         subjectId: subject,
         username:
           (info.preferred_username as string | undefined) ??
-          (info.sub as string | undefined) ??
+          (info.username as string | undefined) ??
           subject,
         email: (info.email as string | undefined) ?? `${subject}@unknown.invalid`,
         firstName: (info.given_name as string | undefined) ?? null,
