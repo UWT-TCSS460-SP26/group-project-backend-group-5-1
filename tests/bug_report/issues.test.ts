@@ -60,22 +60,23 @@ describe('POST /v1/issues', () => {
     expect(res.body.createdAt).toBeDefined();
   });
 
-  it('creates an issue with only a title', async () => {
-    (prisma.$queryRaw as jest.Mock).mockResolvedValueOnce([fakeRow]);
+  it('rejects a body with only a title and no description', async () => {
     const res = await request(app).post('/v1/issues').send({ title: 'Just a title' });
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('description is required');
   });
 
-  it('creates an issue with only a description', async () => {
-    (prisma.$queryRaw as jest.Mock).mockResolvedValueOnce([fakeRow]);
+  it('rejects a body with only a description and no title', async () => {
     const res = await request(app).post('/v1/issues').send({ description: 'Just a description' });
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(400);
+    expect(res.body.details).toContain('title is required');
   });
 
   it('rejects a body with neither title nor description', async () => {
     const res = await request(app).post('/v1/issues').send({ reporter: 'someone' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects an empty body', async () => {
@@ -99,37 +100,43 @@ describe('POST /v1/issues', () => {
   it('rejects an empty string title with no description', async () => {
     const res = await request(app).post('/v1/issues').send({ title: '' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects an empty string description with no title', async () => {
     const res = await request(app).post('/v1/issues').send({ description: '' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects when both title and description are empty strings', async () => {
     const res = await request(app).post('/v1/issues').send({ title: '', description: '' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects a title that is only whitespace', async () => {
     const res = await request(app).post('/v1/issues').send({ title: '   ' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects a description that is only whitespace', async () => {
     const res = await request(app).post('/v1/issues').send({ description: '   ' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('rejects when both title and description are only whitespace', async () => {
     const res = await request(app).post('/v1/issues').send({ title: '   ', description: '   ' });
     expect(res.status).toBe(400);
-    expect(res.body.details).toContain('A title or description is required');
+    expect(res.body.details).toContain('title is required');
+    expect(res.body.details).toContain('description is required');
   });
 
   it('returns 500 when the database throws', async () => {

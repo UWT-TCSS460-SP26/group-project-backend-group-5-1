@@ -2,6 +2,10 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import * as tvService from '../../src/services/tv';
 
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 jest.mock('express-jwt', () => ({
   expressjwt: jest.fn(() => jest.fn()),
 }));

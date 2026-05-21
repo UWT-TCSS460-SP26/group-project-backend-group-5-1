@@ -147,3 +147,48 @@ May 5 — blocked on Prisma schema migration for Issue model; Kylen unblocked by
 May 6 — discovery routes drafted by Evin; ratings serialization in progress by Geo
 May 7 — merge conflicts resolved; all routes passing locally; OpenAPI spec updated
 May 8 — final tests written and passing; README updated; submitted
+
+Sprint 5 Planning Meeting (Week 6)
+
+Attendees: Kylen, Evin, Carson, Geo
+
+Sprint Goal: Deliver a working, deployed frontend bug-report form that integrates end-to-end with the live POST /issues endpoint.
+
+Individual scaffold review:
+
+Each member demoed their individually-built scaffold. Notes captured per member:
+
+- Kylen: React + Vite scaffold with a controlled form component and fetch-based submission; used environment variables for API URL; included basic error state display
+- Evin: Next.js scaffold; clean layout and loading spinner on submit; hardcoded API URL (flagged for fix before merge); no network-failure state
+- Carson: Vanilla HTML/CSS/JS scaffold; lightest bundle; all three UI states (success, validation error, network failure) implemented; no env-var support
+- Geo: React + Vite scaffold; styled with Tailwind; success/error toasts; env-var aware; missing DELETE and PATCH wiring (not required for this sprint)
+
+Comparison and pick-or-merge decision:
+
+After reviewing all four builds, the team agreed to merge Kylen's scaffold as the base (env-var pattern + React + Vite already in place) and pull Carson's three-state UI feedback approach into it. Evin's loading spinner will be cherry-picked in. Geo's Tailwind styling will be adopted if time permits. Agent-assisted merge is acceptable for the boilerplate reconciliation.
+
+Backlog items assigned this sprint:
+
+- Kylen: Accept the Sprint 5 GitHub Classroom group repository; push the merged final build; wire all API calls through VITE_API_URL env var (no hardcoded URLs); verify form posts to live POST /issues via Postman and Prisma Studio
+- Evin: Port the loading spinner into the merged build; write up individual workflow document and commit it to the team FE repo (README or WORKFLOWS.md)
+- Carson: Port the three UI feedback states (success, validation-error, network-failure) into the merged build; confirm each state renders correctly against the live API
+- Geo: Deploy the final build to Vercel; set VITE_API_URL to the production BE URL in Vercel environment settings; share the public Vercel URL with the team; add individual workflow writeup to the team FE repo
+
+Shared / cross-cutting tasks:
+
+- All four members must make at least one commit to the final team FE repository before submission
+- Kylen: Update BE CORS allowlist (CORS_ALLOWED_ORIGINS on Render) to include the Vercel origin; verify OPTIONS preflight returns 204 end-to-end
+- Kylen: Add the final FE URL to the partner-facing README in the BE repo (Done — https://group-project-bug-tracker-front-end-one.vercel.app/) and send it to the downstream partner
+
+Ceremony notes:
+
+- Sprint review: demo the deployed Vercel URL end-to-end — submit a valid bug report, trigger a validation error, and simulate a network failure; confirm each state shows visible UI feedback; verify the submission appears in Prisma Studio on the BE side
+- Retrospective: keep async standups going; flag any Vercel build failures in the group chat immediately so the team can unblock quickly
+- All individual workflow writeups must be committed to the team FE repo before the sprint closes
+
+Sprint 5 Daily Standups (async in group chat):
+
+May 18 — merged scaffolds; Kylen pushed initial merge to team FE repo; CORS update in progress
+May 19 — Carson porting UI feedback states; Evin adding spinner; Geo deploying to Vercel
+May 20 — Vercel deploy live; CORS preflight verified; all members committing workflow writeups
+May 21 — final testing against live API; Prisma Studio confirmation; submission

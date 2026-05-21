@@ -5,9 +5,14 @@ function getUserId(req: Request): number {
   return req.localUser!.id;
 }
 
+const INT32_MIN = -2147483648;
+const INT32_MAX = 2147483647;
+
 function parseId(raw: string): number | null {
   const n = Number(raw);
-  return isNaN(n) || !Number.isInteger(n) ? null : n;
+  if (isNaN(n) || !Number.isInteger(n)) return null;
+  if (n < INT32_MIN || n > INT32_MAX) return null;
+  return n;
 }
 
 type RatingUser = {
@@ -123,6 +128,10 @@ export async function getRatingsForItem(req: Request, res: Response) {
     const mediaId = req.params.mediaId as string;
     const mediaType = req.params.mediaType as string;
 
+    const mediaIdN = Number(mediaId);
+    if (Number.isInteger(mediaIdN) && (mediaIdN > INT32_MAX || mediaIdN < INT32_MIN)) {
+      return res.status(400).json({ error: 'Integer out of range' });
+    }
     const mediaIdNum = parseId(mediaId);
     if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
 
@@ -196,6 +205,10 @@ export async function getRatingByUser(req: Request, res: Response) {
     const mediaId = req.params.mediaId as string;
     const userId = req.params.userId as string;
 
+    const mediaIdN = Number(mediaId);
+    if (Number.isInteger(mediaIdN) && (mediaIdN > INT32_MAX || mediaIdN < INT32_MIN)) {
+      return res.status(400).json({ error: 'Integer out of range' });
+    }
     const mediaIdNum = parseId(mediaId);
     if (mediaIdNum === null) return res.status(400).json({ error: 'Invalid mediaId' });
     const userIdNum = parseId(userId);

@@ -1112,7 +1112,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssueSubmissionResponse'
         '400':
-          description: Validation failure — at least one of title or description is required
+          description: Validation failure — title and description are both required
           content:
             application/json:
               schema:
@@ -1120,7 +1120,8 @@ paths:
               example:
                 error: Invalid bug report
                 details:
-                  - A title or description is required
+                  - title is required
+                  - description is required
         '500':
           description: Failed to save bug report
           content:
@@ -2013,7 +2014,10 @@ components:
 
     IssueSubmission:
       type: object
-      description: Payload for creating a public issue report. At least one of title or description is required.
+      description: Payload for creating a public issue report. Both title and description are required.
+      required:
+        - title
+        - description
       properties:
         title:
           type: string

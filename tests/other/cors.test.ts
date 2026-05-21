@@ -1,6 +1,10 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 describe('CORS preflight', () => {
   it('allows requests from a whitelisted origin', async () => {
     const allowedOrigin =

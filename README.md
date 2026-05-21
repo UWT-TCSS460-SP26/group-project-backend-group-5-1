@@ -63,7 +63,9 @@ Copy `.env.example` to `.env` and fill in the following:
 
 ## Deployed URL
 
-https://tcss460-group-5-api.onrender.com
+**Backend API:** https://tcss460-group-5-api.onrender.com
+
+**Frontend (downstream partner):** https://group-project-bug-tracker-front-end-one.vercel.app/
 
 ---
 

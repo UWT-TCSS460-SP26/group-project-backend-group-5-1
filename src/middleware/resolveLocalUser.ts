@@ -48,17 +48,18 @@ export async function resolveLocalUser(
 
     const info = (await userinfoRes.json()) as Record<string, unknown>;
 
+    const nameParts = ((info.name as string | undefined) ?? '').split(/\s+/).filter(Boolean);
+
     const user = await prisma.user.upsert({
       where: { subjectId: subject },
       update: {}, // already exists — nothing to update on a race condition
       create: {
         subjectId: subject,
-        username:
-          (info.name as string | undefined) ?? (info.email as string | undefined) ?? subject,
+        username: (info.email as string | undefined)?.split('@')[0] ?? subject,
         email: (info.email as string | undefined) ?? `${subject}@unknown.invalid`,
-        firstName: (info.given_name as string | undefined) ?? null,
-        lastName: (info.family_name as string | undefined) ?? null,
-        role: req.user?.role ?? 'User',
+        firstName: nameParts[0] ?? null,
+        lastName: nameParts.length > 1 ? nameParts[nameParts.length - 1] : null,
+        role: 'User',
       },
     });
 

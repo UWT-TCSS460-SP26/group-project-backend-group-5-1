@@ -4,6 +4,10 @@ import { prisma } from '../../src/lib/prisma';
 import * as moviesService from '../../src/services/movies';
 import * as tvService from '../../src/services/tv';
 
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 jest.mock('express-jwt', () => ({
   expressjwt: jest.fn(() => jest.fn()),
 }));

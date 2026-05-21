@@ -18,14 +18,5 @@ export const validateIntParam =
     const num = parseInt(value, 10);
     if (num >= INT32_MIN && num <= INT32_MAX) return next();
 
-    res.status(400).json({
-      error: 'Integer out of range',
-      violations: [
-        {
-          field: paramName,
-          value: num,
-          message: `Value ${num} exceeds the 32-bit signed integer range (${INT32_MIN} to ${INT32_MAX})`,
-        },
-      ],
-    });
+    res.status(400).json({ error: 'Integer out of range' });
   };

@@ -37,8 +37,11 @@ const validateIssue = (body: unknown): IssueValidationResult => {
     errors.push('Request body must be a JSON object');
   }
 
-  if (!title && !description) {
-    errors.push('A title or description is required');
+  if (!title) {
+    errors.push('title is required');
+  }
+  if (!description) {
+    errors.push('description is required');
   }
 
   if (payload.title !== undefined && payload.title !== null && !isString(payload.title)) {

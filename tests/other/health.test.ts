@@ -1,6 +1,10 @@
 import request from 'supertest';
 import { app } from '../../src/app';
 
+jest.mock('../../src/middleware/resolveLocalUser', () => ({
+  resolveLocalUser: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 describe('GET /health', () => {
   it('returns 200 with status ok', async () => {
     const res = await request(app).get('/health');
