@@ -5,6 +5,7 @@ import { ratingsRouter } from './ratings';
 import { reviewsRouter } from './reviews';
 import { issuesRouter } from './issues';
 import { discoveryRouter } from './discovery';
+import { peopleRouter } from './people';
 import { validateIntBody } from '../../middleware/validateIntBody';
 import { validateIntQuery } from '../../middleware/validateIntQuery';
 
@@ -24,5 +25,6 @@ v1Routes.use('/tv', tvRouter);
 v1Routes.use('/issues', issuesRouter);
 v1Routes.use('/reviews', reviewsRouter);
 v1Routes.use('/discover', discoveryRouter);
+v1Routes.use('/people', peopleRouter);
 
 export { v1Routes };
