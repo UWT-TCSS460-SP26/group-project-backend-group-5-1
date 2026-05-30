@@ -80,7 +80,7 @@ describe('GET /v1/tv/:id', () => {
         id: 2,
         body: 'Amazing show!',
         createdAt: new Date('2023-02-01'),
-        user: { username: 'user2' },
+        user: { id: 2, username: 'user2', firstName: null, lastName: null },
       },
     ]);
     (prisma.review.count as jest.Mock).mockResolvedValue(8);
@@ -92,15 +92,16 @@ describe('GET /v1/tv/:id', () => {
     expect(response.body).toHaveProperty('first_air_date');
     expect(response.body).toHaveProperty('number_of_seasons');
     expect(response.body).toHaveProperty('networks');
-    expect(response.body).toHaveProperty('id', 123); // Now included since no trimming
-    expect(response.body).toHaveProperty('community_rating', 9.0);
-    expect(response.body).toHaveProperty('community_rating_count', 20);
-    expect(response.body).toHaveProperty('review_count', 8);
-    expect(response.body).toHaveProperty('recent_reviews');
-    expect(response.body.recent_reviews).toHaveLength(1);
-    expect(response.body.recent_reviews[0]).toHaveProperty('review_text', 'Amazing show!');
-    expect(response.body.recent_reviews[0]).toHaveProperty('user');
-    expect(response.body.recent_reviews[0].user).toHaveProperty('username', 'user2');
+    expect(response.body).toHaveProperty('id', 123);
+    expect(response.body).toHaveProperty('community');
+    expect(response.body.community).toHaveProperty('averageRating', 9.0);
+    expect(response.body.community).toHaveProperty('ratingCount', 20);
+    expect(response.body.community).toHaveProperty('reviewCount', 8);
+    expect(response.body.community).toHaveProperty('recentReviews');
+    expect(response.body.community.recentReviews).toHaveLength(1);
+    expect(response.body.community.recentReviews[0]).toHaveProperty('body', 'Amazing show!');
+    expect(response.body.community.recentReviews[0]).toHaveProperty('author');
+    expect(response.body.community.recentReviews[0].author).toHaveProperty('displayName', 'user2');
   });
 
   it('returns 400 when id is invalid', async () => {

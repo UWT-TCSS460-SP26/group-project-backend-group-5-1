@@ -85,7 +85,7 @@ describe('GET /v1/movies/:id', () => {
         id: 1,
         body: 'Great movie!',
         createdAt: new Date('2023-01-01'),
-        user: { username: 'user1' },
+        user: { id: 1, username: 'user1', firstName: 'John', lastName: 'Doe' },
       },
     ]);
     (prisma.review.count as jest.Mock).mockResolvedValue(5);
@@ -102,14 +102,15 @@ describe('GET /v1/movies/:id', () => {
     expect(res.body).toHaveProperty('belongs_to_collection');
     expect(res.body).toHaveProperty('production_companies');
     expect(res.body).toHaveProperty('imdb_id');
-    expect(res.body).toHaveProperty('community_rating', 8.5);
-    expect(res.body).toHaveProperty('community_rating_count', 10);
-    expect(res.body).toHaveProperty('review_count', 5);
-    expect(res.body).toHaveProperty('recent_reviews');
-    expect(res.body.recent_reviews).toHaveLength(1);
-    expect(res.body.recent_reviews[0]).toHaveProperty('review_text', 'Great movie!');
-    expect(res.body.recent_reviews[0]).toHaveProperty('user');
-    expect(res.body.recent_reviews[0].user).toHaveProperty('username', 'user1');
+    expect(res.body).toHaveProperty('community');
+    expect(res.body.community).toHaveProperty('averageRating', 8.5);
+    expect(res.body.community).toHaveProperty('ratingCount', 10);
+    expect(res.body.community).toHaveProperty('reviewCount', 5);
+    expect(res.body.community).toHaveProperty('recentReviews');
+    expect(res.body.community.recentReviews).toHaveLength(1);
+    expect(res.body.community.recentReviews[0]).toHaveProperty('body', 'Great movie!');
+    expect(res.body.community.recentReviews[0]).toHaveProperty('author');
+    expect(res.body.community.recentReviews[0].author).toHaveProperty('displayName', 'John Doe');
   });
 
   it('returns full TMDB data without stripping fields', async () => {
@@ -124,10 +125,10 @@ describe('GET /v1/movies/:id', () => {
     const res = await request(app).get('/v1/movies/11');
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('title');
-    expect(res.body).toHaveProperty('community_rating', null);
-    expect(res.body).toHaveProperty('community_rating_count', 0);
-    expect(res.body).toHaveProperty('review_count', 0);
-    expect(res.body.recent_reviews).toEqual([]);
+    expect(res.body.community).toHaveProperty('averageRating', null);
+    expect(res.body.community).toHaveProperty('ratingCount', 0);
+    expect(res.body.community).toHaveProperty('reviewCount', 0);
+    expect(res.body.community.recentReviews).toEqual([]);
   });
 
   it('returns 400 when id is invalid', async () => {

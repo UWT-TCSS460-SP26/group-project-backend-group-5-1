@@ -1684,6 +1684,8 @@ components:
             backdrop_path:
               type: string
               nullable: true
+        community:
+          $ref: '#/components/schemas/CommunityData'
 
     TvSummary:
       type: object
@@ -1871,6 +1873,53 @@ components:
               profile_path:
                 type: string
                 nullable: true
+        community:
+          $ref: '#/components/schemas/CommunityData'
+
+    CommunityData:
+      type: object
+      description: Community aggregate data embedded in movie and TV show detail responses.
+      properties:
+        averageRating:
+          type: number
+          format: float
+          nullable: true
+          description: Average star rating from community ratings. Null if no ratings exist.
+          example: 4.2
+        ratingCount:
+          type: integer
+          description: Total number of community ratings.
+          example: 89
+        reviewCount:
+          type: integer
+          description: Total number of community reviews.
+          example: 34
+        recentReviews:
+          type: array
+          description: Up to 3 most recent reviews.
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 7
+              body:
+                type: string
+                example: A timeless classic.
+              createdAt:
+                type: string
+                format: date-time
+                example: '2024-11-01T09:23:00Z'
+              author:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 5
+                  displayName:
+                    type: string
+                    description: Full name if available, otherwise username.
+                    example: Jane Doe
 
     Rating:
       type: object

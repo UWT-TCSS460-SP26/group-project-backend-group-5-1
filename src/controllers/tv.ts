@@ -27,11 +27,8 @@ export const getTvById = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const tvId = parseInt(id as string, 10);
 
-    // Fetch TMDB data
-    const tmdbData = await fetchTmdb(`/tv/${id}`);
-
-    // Fetch community data
-    const [ratingAgg, recentReviews, reviewCount] = await Promise.all([
+    const [tmdbData, ratingAgg, recentReviews, reviewCount] = await Promise.all([
+      fetchTmdb(`/tv/${id}`),
       prisma.rating.aggregate({
         where: { mediaId: tvId, mediaType: 'tv' },
         _avg: { score: true },
@@ -40,27 +37,31 @@ export const getTvById = async (req: Request, res: Response): Promise<void> => {
       prisma.review.findMany({
         where: { mediaId: tvId, mediaType: 'tv' },
         orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: { user: { select: { username: true } } },
+        take: 3,
+        include: {
+          user: { select: { id: true, username: true, firstName: true, lastName: true } },
+        },
       }),
       prisma.review.count({ where: { mediaId: tvId, mediaType: 'tv' } }),
     ]);
 
-    // Merge and respond
-    const enrichedData = {
+    res.json({
       ...tmdbData,
-      community_rating: ratingAgg._avg.score || null,
-      community_rating_count: ratingAgg._count,
-      review_count: reviewCount,
-      recent_reviews: recentReviews.map((r) => ({
-        id: r.id,
-        review_text: r.body,
-        created_at: r.createdAt,
-        user: r.user,
-      })),
-    };
-
-    res.json(enrichedData);
+      community: {
+        averageRating: ratingAgg._avg.score,
+        ratingCount: ratingAgg._count,
+        reviewCount,
+        recentReviews: recentReviews.map((r) => {
+          const fullName = [r.user.firstName, r.user.lastName].filter(Boolean).join(' ').trim();
+          return {
+            id: r.id,
+            body: r.body,
+            createdAt: r.createdAt,
+            author: { id: r.user.id, displayName: fullName || r.user.username },
+          };
+        }),
+      },
+    });
   } catch (error) {
     if ((error as { status?: number }).status === 404) {
       res.status(404).json({ error: `TV show with id ${req.params.id} not found` });
