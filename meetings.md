@@ -192,3 +192,11 @@ May 18 — merged scaffolds; Kylen pushed initial merge to team FE repo; CORS up
 May 19 — Carson porting UI feedback states; Evin adding spinner; Geo deploying to Vercel
 May 20 — Vercel deploy live; CORS preflight verified; all members committing workflow writeups
 May 21 — final testing against live API; Prisma Studio confirmation; submission
+
+### Issues Queue Triage — Sprint 8
+
+| Issue | Status | Resolution |
+|-------|--------|------------|
+| Deleting a rating also deletes a review | Fixed | Changed the Prisma schema `Review.rating` relation from `onDelete: Cascade` to `onDelete: SetNull`, so deleting a rating now nulls the linked review's `ratingId` instead of deleting the review. |
+| Feature Request: Search by cast member | Fixed | Added `GET /v1/people/search` route backed by a new people service that queries TMDB's person search endpoint and returns all media the cast member appears in. |
+| Cannot find enriched routes | Fixed | Updated `GET /v1/movies/:id` and `GET /v1/tv/:id` to include a `community` object in the response with average star rating, total review count, and up to 3 inline reviews. |
