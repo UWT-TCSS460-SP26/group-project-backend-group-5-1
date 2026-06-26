@@ -69,6 +69,115 @@ Copy `.env.example` to `.env` and fill in the following:
 
 ---
 
+## Team Contributions
+
+### Kylen Nguyen
+
+**Project Setup & Infrastructure**
+- Bootstrapped the Express + TypeScript project: npm scripts, ESLint, Prettier, Jest config
+- Set up the Prisma schema, database migrations, and seed data
+- Configured Docker Compose for the local PostgreSQL database
+- Fixed build process and TypeScript compilation throughout the project
+- Managed merges and resolved conflicts across all sprints
+- Maintained and updated OpenAPI documentation
+
+**Sprint 1**
+- Implemented `GET /v1/movies`, `GET /v1/movies/:id`, and `GET /v1/movies/popular` with TMDB integration
+- Built shared `fetchTmdb` helper and response-trimming middleware
+- Restructured TV and movie routes into a unified pattern
+
+**Sprint 2**
+- Created the Prisma schema (users, movies, TV, ratings, reviews)
+- Wrote database migrations and seed script
+- Merged all sprint 2 feature branches and resolved integration issues
+
+**Sprint 3**
+- Completed sprint 3 setup and integration work
+- Added `resolveLocalUser` middleware for Auth² JWT resolution
+- Set role-based guards (`role: User` required) on ratings/reviews write routes
+
+**Sprint 4**
+- Fixed `POST /v1/reviews` so a pre-existing rating is not required
+- Fixed admin-gated route pipeline
+- Renamed `query` param to `q` on movie routes to match TV route convention
+- Added search-by-person feature
+- Fixed database cascade behavior (deleting a rating no longer deletes the linked review)
+- Fixed `GET /v1/movies/:id` and `GET /v1/tv/:id` to include community ratings and reviews
+- Added input validation middleware to prevent bad requests
+
+---
+
+### Evin Roen
+
+**Sprint 1**
+- Added initial hello/evin route
+- Created test scaffolding for TV details, popular shows, and search routes
+- Added Jest config file to resolve linting issues in test files
+- Renamed files for consistent naming conventions
+
+**Sprint 2**
+- Implemented JWT auth route; dev-login endpoint returns a signed token
+- Added `docker-compose.yml` for local PostgreSQL
+- Configured CORS in `app.ts` (allowed origins via environment variable, `Content-Type` and `Authorization` headers)
+- Updated `.env.example` with sprint 2 variables
+
+**Sprint 3**
+- Removed the `devAuth.ts` development shortcut and cleaned up `app.ts`
+- Fixed a duplicate key in `openapi.yaml`
+
+**Sprint 4**
+- Implemented `GET /v1/discover/top-rated` and `GET /v1/discover/most-reviewed` discovery endpoints
+- Implemented `GET /v1/ratings/me` self-list endpoint (authenticated user's ratings with TMDB metadata)
+- Updated OpenAPI documentation for all discovery routes
+- Wrote tests for discovery and self-list routes
+
+---
+
+### Carson Poirier
+
+**Sprint 1**
+- Added hello/carson route
+- Implemented TV show routes: `GET /v1/tv`, `GET /v1/tv/:id`, `GET /v1/tv/popular`
+
+**Sprint 2**
+- Implemented ratings CRUD routes (`GET/POST/PUT/DELETE /v1/ratings`)
+- Implemented reviews CRUD routes (`GET/POST/PUT/DELETE /v1/reviews`)
+- Wrote OpenAPI documentation for ratings and reviews endpoints
+
+**Sprint 3**
+- Added movie and TV details enrichment features
+- Implemented the bug report feature (`POST /v1/issues`)
+
+**Sprint 4**
+- Implemented self-list routes (`GET /v1/ratings/me`, `GET /v1/reviews/me`)
+- Added author objects to review and rating responses
+- Implemented display name derivation logic
+- Implemented the community feed
+
+---
+
+### Geovani Vasquez
+
+**Sprint 1**
+- Added hello/geovani route
+- Implemented `GET /health` route and its OpenAPI documentation
+- Wrote initial test files for all three planned movie routes
+- Updated movie tests to match actual route response shapes
+
+**Sprint 2**
+- Wrote test files for ratings and reviews on both movies and TV
+- Added dev-login test
+- Ran Prettier across test files to fix formatting
+
+**Sprint 3**
+- Rewrote his sprint 3 contribution from scratch after integration issues
+
+**Sprint 4**
+- Wrote all sprint 4 tests
+- Backfilled missing tests from sprint 3
+
+---
+
 ## Partner Integration Guide
 
 ### 1. What auth provider do you use?
